@@ -694,3 +694,41 @@ button {
 .travel-groups li {
   margin: 8px 0;
 }
+
+.member-admin-controls {
+  display: grid;
+  gap: 12px;
+  width: min(100%, 350px);
+}
+
+.responsibilities {
+  display: grid;
+  gap: 12px;
+}
+
+.responsibilities__form,
+.responsibilities__form label {
+  display: grid;
+  gap: 8px;
+}
+
+.responsibilities__form label {
+  font-size: 12px;
+}
+
+.responsibilities__assigned,
+.responsibilities__public {
+  display: grid;
+  gap: 5px;
+  padding: 10px 0;
+}
+
+.responsibilities__assigned {
+  border-top: 1px solid var(--app-line);
+}
+
+.responsibilities__assigned p {
+  margin: 4px 0;
+  color: var(--app-muted);
+  font-size: 12px;
+}
