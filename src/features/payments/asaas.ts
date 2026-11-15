@@ -62,3 +62,43 @@ export async function createAsaasPayment(input: PaymentInput) {
 
   return result;
 }
+
+type AsaasPaymentLookup = {
+  id: string;
+  invoiceUrl?: string;
+  status: string;
+  externalReference?: string;
+};
+
+export async function findAsaasPaymentByReference(reference: string) {
+  const apiKey = process.env.ASAAS_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("ASAAS_API_KEY is not configured.");
+  }
+
+  const host = process.env.ASAAS_ENVIRONMENT === "production"
+    ? "https://api.asaas.com"
+    : "https://api-sandbox.asaas.com";
+
+  const query = new URLSearchParams({ externalReference: reference });
+  const response = await fetch(`${host}/v3/payments?${query}`, {
+    headers: { access_token: apiKey },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Asaas payment lookup failed (HTTP ${response.status}).`);
+  }
+
+  const result = (await response.json()) as { data?: AsaasPaymentLookup[] };
+  const matches = (result.data ?? []).filter(
+    (payment) => payment.externalReference === reference,
+  );
+
+  if (matches.length > 1) {
+    throw new Error("Multiple Asaas payments found for the same reference.");
+  }
+
+  return matches[0] ?? null;
+}

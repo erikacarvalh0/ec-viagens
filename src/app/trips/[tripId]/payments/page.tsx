@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { Card } from "@/design-system";
 import { ChargeForm } from "@/features/payments/ChargeForm";
+import { RecoveryButton } from "@/features/payments/RecoveryButton";
 import { PaymentPlanForm } from "@/features/payments/PaymentPlanForm";
 import { formatBRL } from "@/features/payments/schema";
 import { prisma } from "@/lib/prisma";
@@ -31,7 +32,7 @@ export default async function TripPaymentsPage({ params }: PageProps) {
         where: membership.role === "ADMIN"
           ? undefined
           : { memberId: membership.id },
-        select: { id: true, status: true, amountCents: true, paymentUrl: true, dueAt: true, member: { select: { user: { select: { name: true } } } } },
+        select: { id: true, status: true, amountCents: true, asaasPaymentId: true, paymentUrl: true, dueAt: true, member: { select: { user: { select: { name: true } } } } },
       },
     },
   });
@@ -86,6 +87,9 @@ export default async function TripPaymentsPage({ params }: PageProps) {
                   {" — "}
                   {charge.dueAt.toLocaleDateString("pt-BR", { timeZone: "UTC" })}
                 </p>
+                {membership.role === "ADMIN" && !charge.asaasPaymentId && charge.status === "PENDING" && (
+                  <RecoveryButton tripId={tripId} chargeId={charge.id} />
+                )}
                 {charge.paymentUrl && (
                   <a href={charge.paymentUrl} target="_blank" rel="noopener noreferrer">
                     Abrir link de pagamento
