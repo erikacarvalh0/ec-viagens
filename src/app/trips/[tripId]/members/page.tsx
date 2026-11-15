@@ -23,7 +23,7 @@ export default async function TripMembersPage({ params }: PageProps) {
 
   const members = await prisma.tripMember.findMany({
     where: { tripId },
-    include: { user: true },
+    include: { user: true, titles: true },
     orderBy: { user: { name: "asc" } },
   });
 
@@ -35,6 +35,10 @@ export default async function TripMembersPage({ params }: PageProps) {
         name: member.user.name,
         email: member.user.email,
         role: member.role,
+        titles: member.titles.map((entry) => ({
+          title: entry.title,
+          description: entry.description ?? "",
+        })),
       }))}
       tripId={tripId}
       tripName={membership.trip.name}

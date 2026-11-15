@@ -4,6 +4,8 @@ import { useActionState } from "react";
 import Link from "next/link";
 
 import { Button, Card } from "@/design-system";
+import { ResponsibilityControls } from "@/features/responsibilities/ResponsibilityControls";
+import { responsibilityLabels } from "@/features/responsibilities/schema";
 
 import {
   generateInvitation,
@@ -15,6 +17,10 @@ type Member = {
   name: string;
   email: string;
   role: "ADMIN" | "MEMBER";
+  titles: Array<{
+    title: "VAN_COORDINATOR" | "ORGANIZER";
+    description: string;
+  }>;
 };
 
 type MemberManagementProps = {
@@ -114,9 +120,24 @@ export function MemberManagement({
               <div>
                 <strong>{member.name}</strong>
                 <small>{member.email}</small>
-                <span>{member.role === "ADMIN" ? "Administradora" : "Membra"}</span>
+                <span>{member.role === "ADMIN" ? "Administradora" : "Participante"}</span>
+                {member.titles.map((entry) => (
+                  <div className="responsibilities__public" key={entry.title}>
+                    <strong>{responsibilityLabels[entry.title]}</strong>
+                    {entry.description && <small>{entry.description}</small>}
+                  </div>
+                ))}
               </div>
-              {isAdmin && <RoleControl member={member} tripId={tripId} />}
+              {isAdmin && (
+                <div className="member-admin-controls">
+                  <RoleControl member={member} tripId={tripId} />
+                  <ResponsibilityControls
+                    memberId={member.id}
+                    titles={member.titles}
+                    tripId={tripId}
+                  />
+                </div>
+              )}
             </li>
           ))}
         </ul>
