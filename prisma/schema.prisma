@@ -41,9 +41,11 @@ enum Period {
 model User {
   id          String       @id @default(cuid())
   name        String
-  city        String
-  state       String
-  whatsapp    String       @unique
+  email        String       @unique
+  passwordHash String
+  city        String?
+  state       String?
+  whatsapp    String?      @unique
   memberships TripMember[]
   photos      Photo[]
 }

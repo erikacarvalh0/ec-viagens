@@ -519,3 +519,50 @@ button {
     grid-template-columns: 1fr;
   }
 }
+
+.auth-page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+}
+
+.auth-card {
+  width: min(100%, 440px);
+}
+
+.auth-card h1 {
+  font: 700 28px "Outfit", sans-serif;
+}
+
+.auth-card > p:not(.eyebrow),
+.auth-card > p a {
+  color: var(--app-muted);
+  font-size: 13px;
+}
+
+.auth-card > p a {
+  color: var(--ec-primary);
+}
+
+.auth-form {
+  display: grid;
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.auth-form label {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.auth-form p {
+  color: #b12b54;
+  font-size: 12px;
+}
+
+.dashboard-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}

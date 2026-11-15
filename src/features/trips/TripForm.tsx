@@ -9,11 +9,12 @@ import { tripDraftSchema, type TripDraft } from "./trip";
 
 type TripFormProps = {
   onClose: () => void;
-  onCreate: (draft: TripDraft) => void;
+  onCreate: (draft: TripDraft) => Promise<void>;
 };
 
 export function TripForm({ onClose, onCreate }: TripFormProps) {
   const [error, setError] = useState("");
+  const [pending, setPending] = useState(false);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -27,7 +28,7 @@ export function TripForm({ onClose, onCreate }: TripFormProps) {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const data = new FormData(event.currentTarget);
@@ -45,8 +46,16 @@ export function TripForm({ onClose, onCreate }: TripFormProps) {
       return;
     }
 
+    setPending(true);
     setError("");
-    onCreate(result.data);
+
+    try {
+      await onCreate(result.data);
+    } catch {
+      setError("Não foi possível salvar a viagem. Tente novamente.");
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
@@ -132,11 +141,13 @@ export function TripForm({ onClose, onCreate }: TripFormProps) {
           )}
 
           <div className="trip-form__actions">
-            <Button onClick={onClose} type="button" variant="secondary">
+            <Button disabled={pending} onClick={onClose} type="button" variant="secondary">
               Cancelar
             </Button>
 
-            <Button type="submit">Criar viagem</Button>
+            <Button disabled={pending} type="submit">
+              {pending ? "Salvando..." : "Criar viagem"}
+            </Button>
           </div>
         </form>
       </Card>
