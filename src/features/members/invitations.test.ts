@@ -63,7 +63,6 @@ describe("trip invitations", () => {
   });
 
   it("stores a token hash rather than the invitation secret", async () => {
-    await createInvitation("trip-a").catch(() => undefined);
     mocks.requireTripAdmin.mockResolvedValue({ id: "actor" });
 
     const token = await createInvitation("trip-a");
