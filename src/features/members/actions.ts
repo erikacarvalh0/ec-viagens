@@ -16,8 +16,9 @@ export type MemberActionState = {
 
 export async function generateInvitation(
   tripId: string,
-  _previous: MemberActionState,
+  previous: MemberActionState,
 ): Promise<MemberActionState> {
+  void previous;
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
 
   if (!baseUrl) {
@@ -38,8 +39,9 @@ export async function updateMemberRole(
   tripId: string,
   memberId: string,
   role: "ADMIN" | "MEMBER",
-  _previous: MemberActionState,
+  previous: MemberActionState,
 ): Promise<MemberActionState> {
+  void previous;
   try {
     await changeMemberRole(tripId, memberId, role);
     revalidatePath(`/trips/${tripId}/members`);
@@ -54,8 +56,9 @@ export async function updateMemberRole(
 
 export async function redeemInvitation(
   token: string,
-  _previous: MemberActionState,
+  previous: MemberActionState,
 ): Promise<MemberActionState> {
+  void previous;
   let tripId: string;
 
   try {
