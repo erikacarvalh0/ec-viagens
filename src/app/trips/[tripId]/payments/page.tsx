@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { Card } from "@/design-system";
 import { ChargeForm } from "@/features/payments/ChargeForm";
+import { ReminderButton } from "@/features/notifications/ReminderButton";
 import { RecoveryButton } from "@/features/payments/RecoveryButton";
 import { PaymentPlanForm } from "@/features/payments/PaymentPlanForm";
 import { formatBRL } from "@/features/payments/schema";
@@ -89,6 +90,9 @@ export default async function TripPaymentsPage({ params }: PageProps) {
                 </p>
                 {membership.role === "ADMIN" && !charge.asaasPaymentId && charge.status === "PENDING" && (
                   <RecoveryButton tripId={tripId} chargeId={charge.id} />
+                )}
+                {membership.role === "ADMIN" && charge.paymentUrl && (charge.status === "PENDING" || charge.status === "OVERDUE") && (
+                  <ReminderButton tripId={tripId} chargeId={charge.id} />
                 )}
                 {charge.paymentUrl && (
                   <a href={charge.paymentUrl} target="_blank" rel="noopener noreferrer">
