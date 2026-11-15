@@ -1,4 +1,5 @@
-import { ArrowLeft, CalendarDays, ExternalLink, MapPin } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, CalendarDays, ExternalLink, MapPin, Users } from "lucide-react";
 
 import { Button, Card } from "@/design-system";
 
@@ -36,9 +37,13 @@ export function TripDetails({ trip, onBack }: TripDetailsProps) {
           </a>
         )}
 
+        <Link href={`/trips/${trip.id}/members`}>
+          <Users size={16} /> Ver participantes e administradoras
+        </Link>
+
         <div className="trip-details__notice">
-          Os convites, participantes, pagamentos e transporte serão
-          habilitados após a autenticação e o banco de dados.
+          O transporte, os pagamentos e a galeria serão implementados
+          nas próximas etapas.
         </div>
       </Card>
     </div>

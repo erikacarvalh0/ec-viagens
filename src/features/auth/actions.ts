@@ -66,7 +66,7 @@ export async function login(
   try {
     await signIn("credentials", {
       ...result.data,
-      redirectTo: "/dashboard",
+      redirect: false,
     });
   } catch (error) {
     if (error instanceof AuthError) {
@@ -76,7 +76,7 @@ export async function login(
     throw error;
   }
 
-  return { error: "" };
+  redirect("/dashboard");
 }
 
 export async function logout() {
