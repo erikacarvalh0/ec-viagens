@@ -20,7 +20,6 @@ const eventStatuses: Record<string, ChargeStatus> = {
   PAYMENT_OVERDUE: "OVERDUE",
   PAYMENT_DELETED: "CANCELLED",
   PAYMENT_REFUNDED: "REFUNDED",
-  PAYMENT_REFUND_IN_PROGRESS: "REFUNDED",
   PAYMENT_RESTORED: "PENDING",
 };
 
@@ -67,8 +66,11 @@ export async function reconcileAsaasEvent(input: unknown) {
         },
       });
 
-      const terminal = charge.status === "REFUNDED" || charge.status === "CANCELLED";
-      const downgradePaid = charge.status === "PAID" &&
+      const current = await transaction.charge.findUniqueOrThrow({
+        where: { id: charge.id },
+      });
+      const terminal = current.status === "REFUNDED" || current.status === "CANCELLED";
+      const downgradePaid = current.status === "PAID" &&
         (status === "OVERDUE" || status === "PENDING");
 
       if (terminal && status !== "REFUNDED") {
@@ -86,14 +88,14 @@ export async function reconcileAsaasEvent(input: unknown) {
           : new Date()
         : status === "REFUNDED" || status === "CANCELLED"
           ? null
-          : charge.paidAt;
+          : current.paidAt;
 
       await transaction.charge.update({
         where: { id: charge.id },
         data: {
           status,
           paidAt,
-          ...(!charge.asaasPaymentId
+          ...(!current.asaasPaymentId
             ? { asaasPaymentId: event.payment.id }
             : {}),
         },
