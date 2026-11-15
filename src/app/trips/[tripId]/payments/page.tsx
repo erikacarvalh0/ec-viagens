@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Card } from "@/design-system";
+import { ChargeForm } from "@/features/payments/ChargeForm";
 import { PaymentPlanForm } from "@/features/payments/PaymentPlanForm";
 import { formatBRL } from "@/features/payments/schema";
 import { prisma } from "@/lib/prisma";
@@ -30,10 +31,18 @@ export default async function TripPaymentsPage({ params }: PageProps) {
         where: membership.role === "ADMIN"
           ? undefined
           : { memberId: membership.id },
-        select: { id: true, status: true, amountCents: true },
+        select: { id: true, status: true, amountCents: true, paymentUrl: true, dueAt: true, member: { select: { user: { select: { name: true } } } } },
       },
     },
   });
+
+  const participants = membership.role === "ADMIN"
+    ? await prisma.tripMember.findMany({
+        where: { tripId },
+        select: { id: true, user: { select: { name: true } } },
+        orderBy: { user: { name: "asc" } },
+      })
+    : [];
 
   return (
     <main className="members-page">
@@ -43,6 +52,14 @@ export default async function TripPaymentsPage({ params }: PageProps) {
       <p>Planos de pagamento da viagem</p>
 
       {membership.role === "ADMIN" && <PaymentPlanForm tripId={tripId} />}
+
+      {membership.role === "ADMIN" && (
+        <ChargeForm
+          tripId={tripId}
+          plans={plans.map((plan) => ({ id: plan.id, name: plan.name }))}
+          members={participants.map((member) => ({ id: member.id, name: member.user.name }))}
+        />
+      )}
 
       <section className="payment-plans">
         {plans.map((plan) => (
@@ -57,6 +74,21 @@ export default async function TripPaymentsPage({ params }: PageProps) {
             {membership.role === "ADMIN" && (
               <p>{plan.charges.length} cobranças cadastradas</p>
             )}
+            {plan.charges.map((charge) => (
+              <div key={charge.id}>
+                <p>
+                  {membership.role === "ADMIN" && `${charge.member.user.name} — `}
+                  {formatBRL(charge.amountCents)} — {charge.status}
+                  {" — "}
+                  {charge.dueAt.toLocaleDateString("pt-BR", { timeZone: "UTC" })}
+                </p>
+                {charge.paymentUrl && (
+                  <a href={charge.paymentUrl} target="_blank" rel="noopener noreferrer">
+                    Abrir link de pagamento
+                  </a>
+                )}
+              </div>
+            ))}
             {membership.role !== "ADMIN" && (
               <p>
                 {plan.charges.length
