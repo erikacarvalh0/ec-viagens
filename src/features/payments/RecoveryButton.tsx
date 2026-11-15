@@ -27,7 +27,7 @@ export function RecoveryButton({
           });
         }}
         type="button"
-        variant="secondary"
+        variant="ghost"
       >
         {pending ? "Consultando..." : "Verificar no Asaas"}
       </Button>
