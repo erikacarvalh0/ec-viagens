@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/session";
 import { Dashboard } from "@/features/trips/Dashboard";
@@ -25,5 +27,12 @@ export default async function DashboardPage() {
     createdAt: trip.createdAt.toISOString(),
   }));
 
-  return <Dashboard initialTrips={trips} />;
+  return (
+    <>
+      <nav aria-label="Preferências de conta">
+        <Link href="/settings/notifications">Preferências de notificações</Link>
+      </nav>
+      <Dashboard initialTrips={trips} />
+    </>
+  );
 }
