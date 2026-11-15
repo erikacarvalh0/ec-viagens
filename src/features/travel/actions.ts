@@ -33,7 +33,7 @@ export async function saveTravelDetails(
     return { error: "Você não participa desta viagem." };
   }
 
-  const values = Object.fromEntries(
+  const values: Record<string, string | boolean> = Object.fromEntries(
     [
       "city", "state", "whatsapp", "outboundAt", "outboundPeriod",
       "outboundOrigin", "returnAt", "returnPeriod", "returnOrigin",
