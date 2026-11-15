@@ -63,6 +63,11 @@ export async function login(
     return { error: "Informe um e-mail e uma senha válidos." };
   }
 
+  const callbackUrl = String(formData.get("callbackUrl") ?? "");
+  const redirectTo = /^\/invite\/[a-f0-9]{64}$/.test(callbackUrl)
+    ? callbackUrl
+    : "/dashboard";
+
   try {
     await signIn("credentials", {
       ...result.data,
@@ -76,7 +81,7 @@ export async function login(
     throw error;
   }
 
-  redirect("/dashboard");
+  redirect(redirectTo);
 }
 
 export async function logout() {

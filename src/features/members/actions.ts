@@ -18,14 +18,14 @@ export async function generateInvitation(
   tripId: string,
   _previous: MemberActionState,
 ): Promise<MemberActionState> {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+
+  if (!baseUrl) {
+    return { error: "Configure NEXT_PUBLIC_APP_URL before sharing invitations." };
+  }
+
   try {
     const token = await createInvitation(tripId);
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
-
-    if (!baseUrl) {
-      return { error: "Configure NEXT_PUBLIC_APP_URL before sharing invitations." };
-    }
-
     const invitationUrl = new URL(`/invite/${token}`, baseUrl).toString();
 
     return { error: "", invitationUrl };
@@ -56,12 +56,14 @@ export async function redeemInvitation(
   token: string,
   _previous: MemberActionState,
 ): Promise<MemberActionState> {
+  let tripId: string;
+
   try {
-    const tripId = await acceptInvitation(token);
-    revalidatePath(`/trips/${tripId}/members`);
+    tripId = await acceptInvitation(token);
   } catch {
     return { error: "This invitation has expired, was used, or is invalid." };
   }
 
-  redirect("/dashboard");
+  revalidatePath(`/trips/${tripId}/members`);
+  redirect(`/trips/${tripId}/members`);
 }
