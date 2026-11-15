@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, CalendarDays, ExternalLink, MapPin, Users } from "lucide-react";
+import { ArrowLeft, CalendarDays, ExternalLink, MapPin, Users, CarFront } from "lucide-react";
 
 import { Button, Card } from "@/design-system";
 
@@ -41,8 +41,12 @@ export function TripDetails({ trip, onBack }: TripDetailsProps) {
           <Users size={16} /> Ver participantes e administradoras
         </Link>
 
+        <Link href={`/trips/${trip.id}/travel`}>
+          <CarFront size={16} /> Informações de viagem e caronas
+        </Link>
+
         <div className="trip-details__notice">
-          O transporte, os pagamentos e a galeria serão implementados
+          Os pagamentos e a galeria serão implementados
           nas próximas etapas.
         </div>
       </Card>

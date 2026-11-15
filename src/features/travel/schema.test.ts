@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { travelDetailsSchema } from "./schema";
+import { adminTravelDetailsSchema, travelDetailsSchema } from "./schema";
 
 const valid = {
   city: "São Paulo",
@@ -70,14 +70,14 @@ describe("travel details validation", () => {
 
   it("allows admins to leave travel details empty", () => {
     expect(
-      travelDetailsSchema.safeParse({
+      adminTravelDetailsSchema.safeParse({
         ...valid,
         city: "",
         state: "",
         whatsapp: "",
         outboundAt: "",
         returnAt: "",
-      }, { role: "ADMIN" }).success,
+      }).success,
     ).toBe(true);
   });
 });
