@@ -1,15 +1,76 @@
 "use client";
+
 import { useState } from "react";
-import { CalendarDays, Camera, CarFront, CircleDollarSign, Heart, LayoutDashboard, MapPin, Plus, Users, Wallet } from "lucide-react";
-import { Button } from "@/components/ui/button";
-type Trip={id:number;name:string;date:string;place:string;people:number};
-const examples:Trip[]=[{id:1,name:"Encontrão 2026",date:"Datas a definir",place:"Local a definir",people:0}];
-const sections=[["Visão geral",LayoutDashboard],["Viagens",CalendarDays],["Participantes",Users],["Pagamentos",Wallet],["Transporte",CarFront],["Galeria",Camera]] as const;
-export default function Home(){
- const [section,setSection]=useState<string>("Visão geral");
- const [trips,setTrips]=useState(examples);
- const [showForm,setShowForm]=useState(false);
- const [name,setName]=useState("");
- function addTrip(e:React.FormEvent){e.preventDefault();if(!name.trim())return;setTrips(prev=>[{id:Date.now(),name:name.trim(),date:"Datas a definir",place:"Local a definir",people:0},...prev]);setName("");setShowForm(false);setSection("Viagens")}
- return <div className="shell"><aside className="sidebar"><div className="brand"><Heart size={24}/> ec<span>viagens</span></div><p className="nav-label">MENU PRINCIPAL</p><nav>{sections.map(([label,Icon])=><button key={label} className={section===label?"active":""} onClick={()=>setSection(label)}><Icon size={18}/>{label}</button>)}</nav><p className="sidebar-note">Planeje encontros inesquecíveis ♡</p></aside><main className="main"><header className="topbar">Início / {section}<span>Área da administradora</span></header><div className="content"><div className="heading"><div><p className="eyebrow">BEM-VINDA DE VOLTA ✳</p><h1>{section==="Visão geral"?"Nossas viagens":section}</h1><p>Cada encontro vira uma história para guardar. ♡</p></div><Button onClick={()=>setShowForm(true)}><Plus size={17}/> Nova viagem</Button></div>{section==="Visão geral"||section==="Viagens"?<><div className="stats"><div><CalendarDays/> <small>Viagens cadastradas</small><strong>{trips.length}</strong></div><div><Users/> <small>Participantes</small><strong>{trips.reduce((sum,t)=>sum+t.people,0)}</strong></div><div><CircleDollarSign/> <small>Financeiro</small><strong>Em breve</strong></div></div><h2>Viagens</h2><div className="trip-grid">{trips.map(t=><article className="trip-card" key={t.id}><div className="cover"><span>♡</span></div><div className="trip-info"><h3>{t.name}</h3><p><CalendarDays size={16}/>{t.date}</p><p><MapPin size={16}/>{t.place}</p><p><Users size={16}/>{t.people} participantes</p></div></article>)}<button className="new-card" onClick={()=>setShowForm(true)}><Plus size={26}/><strong>Criar nova viagem</strong><small>O próximo encontro começa aqui!</small></button></div></>:<div className="placeholder"><h2>{section}</h2><p>Área planejada para a próxima etapa de implementação.</p></div>}</div></main>{showForm&&<div className="backdrop"><form className="modal" onSubmit={addTrip}><h2>Nova viagem ♡</h2><p>Comece pelo nome. Você poderá preencher os detalhes depois.</p><label htmlFor="trip-name">Nome da viagem *</label><input id="trip-name" autoFocus required value={name} onChange={e=>setName(e.target.value)} placeholder="Ex.: Encontrão 2027"/><div className="actions"><Button type="button" variant="secondary" onClick={()=>setShowForm(false)}>Cancelar</Button><Button type="submit">Criar viagem</Button></div></form></div>}</div>
+import { Plus } from "lucide-react";
+
+import { AppShell, sectionLabels, type Section } from "@/components/AppShell";
+import { Button } from "@/design-system";
+import { TripDetails } from "@/features/trips/TripDetails";
+import { TripForm } from "@/features/trips/TripForm";
+import { TripOverview } from "@/features/trips/TripOverview";
+import { useLocalTrips } from "@/features/trips/use-local-trips";
+
+export default function Home() {
+  const [section, setSection] = useState<Section>("overview");
+  const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
+  const { trips, hydrated, createTrip } = useLocalTrips();
+  const selectedTrip = trips.find((trip) => trip.id === selectedTripId);
+
+  const showTrips = section === "overview" || section === "trips";
+
+  return (
+    <AppShell currentSection={section} onNavigate={setSection}>
+      <div className="heading">
+        <div>
+          <p className="eyebrow">BEM-VINDA DE VOLTA ✳</p>
+          <h1>{showTrips ? "Nossas viagens" : sectionLabels[section]}</h1>
+          <p>Cada encontro vira uma história para guardar. ♡</p>
+        </div>
+
+        <Button onClick={() => setIsFormOpen(true)}>
+          <Plus size={17} />
+          Nova viagem
+        </Button>
+      </div>
+
+      <p className="preview-note">
+        Prévia local: as viagens ficam apenas neste navegador. Convites e
+        informações compartilhadas serão disponibilizados após a autenticação.
+      </p>
+
+      {showTrips ? (
+        <TripOverview
+          hydrated={hydrated}
+          onCreate={() => setIsFormOpen(true)}
+          onOpenTrip={(id) => {
+            setSelectedTripId(id);
+            setSection("details");
+          }}
+          trips={trips}
+        />
+      ) : section === "details" && selectedTrip ? (
+        <TripDetails onBack={() => setSection("trips")} trip={selectedTrip} />
+      ) : (
+        <div className="placeholder">
+          <h2>{sectionLabels[section]}</h2>
+          <p>
+            Esta área será conectada a dados compartilhados na próxima etapa.
+          </p>
+        </div>
+      )}
+
+      {isFormOpen && (
+        <TripForm
+          onClose={() => setIsFormOpen(false)}
+          onCreate={(draft) => {
+            createTrip(draft);
+            setSection("trips");
+            setIsFormOpen(false);
+          }}
+        />
+      )}
+    </AppShell>
+  );
 }
