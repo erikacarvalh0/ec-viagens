@@ -27,6 +27,10 @@ export async function schedulePaymentReminder(
       return { error: "A cobrança não está pendente de pagamento." };
     }
 
+    if (!charge.member.user.paymentReminderConsentAt) {
+      return { error: "A participante ainda não autorizou lembretes pelo WhatsApp." };
+    }
+
     const whatsapp = charge.member.user.whatsapp;
     if (!whatsapp || !/^\d{10,15}$/.test(whatsapp) || !charge.paymentUrl) {
       return { error: "A participante precisa de WhatsApp válido e link de pagamento." };
