@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   findFirst: vi.fn(),
   createEvent: vi.fn(),
   updateCharge: vi.fn(),
+  findCurrent: vi.fn(),
   transaction: vi.fn(),
 }));
 
@@ -27,10 +28,14 @@ describe("Asaas webhook reconciliation", () => {
       status: "PENDING",
       paidAt: null,
     });
+    mocks.findCurrent.mockImplementation(async () => mocks.findFirst());
     mocks.transaction.mockImplementation(async (callback) =>
       callback({
         paymentEvent: { create: mocks.createEvent },
-        charge: { update: mocks.updateCharge },
+        charge: {
+          update: mocks.updateCharge,
+          findUniqueOrThrow: mocks.findCurrent,
+        },
       }),
     );
   });
