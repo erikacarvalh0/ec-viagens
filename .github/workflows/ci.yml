@@ -26,6 +26,9 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ec_viagens
 
+      - name: Unit tests
+        run: npm test
+
       - name: Typecheck
         run: npm run typecheck
 
