@@ -51,6 +51,10 @@ export default async function TripPaymentsPage({ params }: PageProps) {
       <h1>{membership.trip.name}</h1>
       <p>Planos de pagamento da viagem</p>
 
+      {membership.role === "ADMIN" && (
+        <p><Link href={`/trips/${tripId}/payments/report`}>Ver relatório financeiro →</Link></p>
+      )}
+
       {membership.role === "ADMIN" && <PaymentPlanForm tripId={tripId} />}
 
       {membership.role === "ADMIN" && (
