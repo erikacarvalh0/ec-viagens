@@ -1,0 +1,64 @@
+type CustomerInput = {
+  name: string;
+  email: string;
+};
+
+type PaymentInput = {
+  customer: string;
+  value: number;
+  dueDate: string;
+  externalReference: string;
+};
+
+type PaymentResponse = { id: string; invoiceUrl: string };
+
+async function asaasPost<T>(path: string, body: object): Promise<T> {
+  const apiKey = process.env.ASAAS_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("ASAAS_API_KEY is not configured.");
+  }
+
+  const host = process.env.ASAAS_ENVIRONMENT === "production"
+    ? "https://api.asaas.com"
+    : "https://api-sandbox.asaas.com";
+
+  const response = await fetch(`${host}/v3/${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      access_token: apiKey,
+    },
+    body: JSON.stringify(body),
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Asaas API request failed (HTTP ${response.status}).`);
+  }
+
+  return (await response.json()) as T;
+}
+
+export async function createAsaasCustomer(customer: CustomerInput) {
+  const result = await asaasPost<{ id: string }>("customers", customer);
+
+  if (!result.id) {
+    throw new Error("Asaas did not return a customer ID.");
+  }
+
+  return result.id;
+}
+
+export async function createAsaasPayment(input: PaymentInput) {
+  const result = await asaasPost<PaymentResponse>("payments", {
+    ...input,
+    billingType: "UNDEFINED",
+  });
+
+  if (!result.id || !result.invoiceUrl) {
+    throw new Error("Asaas did not return a valid payment link.");
+  }
+
+  return result;
+}
