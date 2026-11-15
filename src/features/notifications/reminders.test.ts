@@ -24,7 +24,7 @@ const charge = {
   id: "charge-1",
   status: "PENDING",
   paymentUrl: "https://sandbox.asaas.com/i/example",
-  member: { user: { whatsapp: "5511999999999" } },
+  member: { user: { whatsapp: "5511999999999", paymentReminderConsentAt: new Date("2026-11-15") } },
 };
 
 describe("payment reminder scheduling", () => {
@@ -76,6 +76,18 @@ describe("payment reminder scheduling", () => {
 
   it("does not schedule paid charges", async () => {
     mocks.findFirst.mockResolvedValue({ ...charge, status: "PAID" });
+
+    const result = await schedulePaymentReminder("trip-1", "charge-1");
+
+    expect(result.error).not.toBe("");
+    expect(mocks.upsert).not.toHaveBeenCalled();
+  });
+
+  it("requires explicit WhatsApp consent", async () => {
+    mocks.findFirst.mockResolvedValue({
+      ...charge,
+      member: { user: { whatsapp: "5511999999999", paymentReminderConsentAt: null } },
+    });
 
     const result = await schedulePaymentReminder("trip-1", "charge-1");
 

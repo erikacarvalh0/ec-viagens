@@ -46,6 +46,7 @@ model User {
   city        String?
   state       String?
   whatsapp    String?      @unique
+  paymentReminderConsentAt DateTime?
   memberships TripMember[]
   photos      Photo[]
 }
