@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, CalendarDays, ExternalLink, MapPin, Users, CarFront } from "lucide-react";
+import { ArrowLeft, CalendarDays, ExternalLink, MapPin, Users, CarFront, Wallet } from "lucide-react";
 
 import { Button, Card } from "@/design-system";
 
@@ -45,8 +45,12 @@ export function TripDetails({ trip, onBack }: TripDetailsProps) {
           <CarFront size={16} /> Informações de viagem e caronas
         </Link>
 
+        <Link href={`/trips/${trip.id}/payments`}>
+          <Wallet size={16} /> Planos de pagamento
+        </Link>
+
         <div className="trip-details__notice">
-          Os pagamentos e a galeria serão implementados
+          A integração de cobranças e a galeria serão implementadas
           nas próximas etapas.
         </div>
       </Card>
