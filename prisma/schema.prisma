@@ -1,105 +1,177 @@
-generator client { provider = "prisma-client-js" }
-datasource db { provider = "postgresql" url = env("DATABASE_URL") }
-enum MemberRole { ADMIN MEMBER }
-enum TripTitle { VAN_COORDINATOR ORGANIZER }
-enum ChargeStatus { PENDING PAID OVERDUE CANCELLED REFUNDED }
-enum Period { MORNING AFTERNOON EVENING }
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MemberRole {
+  ADMIN
+  MEMBER
+}
+
+enum TripTitle {
+  VAN_COORDINATOR
+  ORGANIZER
+}
+
+enum ChargeStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+  REFUNDED
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
+enum Period {
+  MORNING
+  AFTERNOON
+  EVENING
+}
+
 model User {
- id String @id @default(cuid())
- name String
- city String
- state String
- whatsapp String @unique
- memberships TripMember[]
- photos Photo[]
+  id          String       @id @default(cuid())
+  name        String
+  city        String
+  state       String
+  whatsapp    String       @unique
+  memberships TripMember[]
+  photos      Photo[]
 }
+
 model Trip {
- id String @id @default(cuid())
- name String
- startsAt DateTime?
- endsAt DateTime?
- address String?
- mapUrl String?
- createdAt DateTime @default(now())
- memberships TripMember[]
- paymentPlans PaymentPlan[]
- photos Photo[]
+  id           String        @id @default(cuid())
+  name         String
+  startsAt     DateTime?
+  endsAt       DateTime?
+  locationName String?
+  address      String?
+  mapUrl       String?
+  createdAt    DateTime      @default(now())
+  memberships  TripMember[]
+  invitations  Invitation[]
+  paymentPlans PaymentPlan[]
+  photos       Photo[]
 }
+
 model TripMember {
- id String @id @default(cuid())
- tripId String
- userId String
- role MemberRole @default(MEMBER)
- trip Trip @relation(fields:[tripId],references:[id],onDelete:Cascade)
- user User @relation(fields:[userId],references:[id])
- travel TravelInfo?
- titles MemberTitle[]
- charges Charge[]
- @@unique([tripId,userId])
+  id      String     @id @default(cuid())
+  tripId  String
+  userId  String
+  role    MemberRole @default(MEMBER)
+  trip    Trip       @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  user    User       @relation(fields: [userId], references: [id])
+  travel  TravelInfo?
+  titles  MemberTitle[]
+  charges Charge[]
+
+  @@unique([tripId, userId])
 }
+
 model MemberTitle {
- id String @id @default(cuid())
- memberId String
- title TripTitle
- description String?
- member TripMember @relation(fields:[memberId],references:[id],onDelete:Cascade)
- @@unique([memberId,title])
+  id          String     @id @default(cuid())
+  memberId    String
+  title       TripTitle
+  description String?
+  member      TripMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, title])
 }
+
 model TravelInfo {
- id String @id @default(cuid())
- memberId String @unique
- outboundAt DateTime?
- outboundPeriod Period?
- outboundOrigin String?
- returnAt DateTime?
- returnPeriod Period?
- returnOrigin String?
- transportMode String?
- needsRide Boolean @default(false)
- interestedVan Boolean @default(false)
- shareUber Boolean @default(false)
- offersRide Boolean @default(false)
- rideOutbound Boolean @default(false)
- rideReturn Boolean @default(false)
- member TripMember @relation(fields:[memberId],references:[id],onDelete:Cascade)
+  id              String      @id @default(cuid())
+  memberId        String      @unique
+  outboundAt      DateTime?
+  outboundPeriod  Period?
+  outboundOrigin  String?
+  returnAt        DateTime?
+  returnPeriod    Period?
+  returnOrigin    String?
+  transportMode   String?
+  needsRide       Boolean     @default(false)
+  interestedVan   Boolean     @default(false)
+  shareUber       Boolean     @default(false)
+  offersRide      Boolean     @default(false)
+  rideOutbound    Boolean     @default(false)
+  rideReturn      Boolean     @default(false)
+  member          TripMember  @relation(fields: [memberId], references: [id], onDelete: Cascade)
 }
+
+model Invitation {
+  id        String           @id @default(cuid())
+  tripId    String
+  whatsapp  String
+  tokenHash String           @unique
+  expiresAt DateTime
+  status    InvitationStatus @default(PENDING)
+  createdAt DateTime         @default(now())
+  trip      Trip             @relation(fields: [tripId], references: [id], onDelete: Cascade)
+}
+
 model PaymentPlan {
- id String @id @default(cuid())
- tripId String
- name String
- amountCents Int
- dueDay Int?
- trip Trip @relation(fields:[tripId],references:[id],onDelete:Cascade)
- charges Charge[]
+  id          String   @id @default(cuid())
+  tripId      String
+  name        String
+  amountCents Int
+  dueDay      Int?
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  charges     Charge[]
 }
+
 model Charge {
- id String @id @default(cuid())
- paymentPlanId String
- memberId String
- asaasPaymentId String? @unique
- amountCents Int
- dueAt DateTime
- paidAt DateTime?
- status ChargeStatus @default(PENDING)
- paymentUrl String?
- plan PaymentPlan @relation(fields:[paymentPlanId],references:[id],onDelete:Cascade)
- member TripMember @relation(fields:[memberId],references:[id])
- events PaymentEvent[]
+  id             String        @id @default(cuid())
+  paymentPlanId  String
+  memberId       String
+  asaasPaymentId String?       @unique
+  amountCents    Int
+  dueAt          DateTime
+  paidAt         DateTime?
+  status         ChargeStatus  @default(PENDING)
+  paymentUrl     String?
+  plan           PaymentPlan   @relation(fields: [paymentPlanId], references: [id], onDelete: Cascade)
+  member         TripMember    @relation(fields: [memberId], references: [id])
+  events         PaymentEvent[]
+
+  @@index([status, dueAt])
 }
+
 model PaymentEvent {
- id String @id @default(cuid())
- chargeId String
- externalEventId String @unique
- eventType String
- payload Json
- charge Charge @relation(fields:[chargeId],references:[id],onDelete:Cascade)
+  id              String   @id @default(cuid())
+  chargeId        String
+  externalEventId String   @unique
+  eventType       String
+  payload         Json
+  charge          Charge   @relation(fields: [chargeId], references: [id], onDelete: Cascade)
 }
+
 model Photo {
- id String @id @default(cuid())
- tripId String
- uploadedById String
- storageKey String @unique
- caption String?
- trip Trip @relation(fields:[tripId],references:[id],onDelete:Cascade)
- uploadedBy User @relation(fields:[uploadedById],references:[id])
+  id           String   @id @default(cuid())
+  tripId       String
+  uploadedById String
+  storageKey   String   @unique
+  caption      String?
+  trip         Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+}
+
+model Notification {
+  id                  String    @id @default(cuid())
+  recipientWhatsapp   String
+  kind                String
+  referenceId         String
+  scheduledFor        DateTime
+  sentAt              DateTime?
+  providerMessageId   String?
+  status              String    @default("PENDING")
+
+  @@unique([kind, referenceId, scheduledFor])
 }

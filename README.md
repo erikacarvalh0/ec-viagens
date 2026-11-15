@@ -1,10 +1,11 @@
 # ec-viagens ♡
 
-Aplicação para organizar viagens anuais entre amigas: participantes, caronas, pagamentos e galeria.
+Trip planning application for annual friends' gatherings, including planned
+participant management, ride sharing, payments, reminders and photos.
 
-## Rodar localmente
+## Development
 
-Requer Node.js 20+.
+Requirements: Node.js 20+, npm and PostgreSQL for future database work.
 
 ```bash
 npm install
@@ -12,28 +13,66 @@ cp .env.example .env
 npm run dev
 ```
 
-Abra http://localhost:3000.
+Open http://localhost:3000.
 
-## Status
+```bash
+npm run typecheck
+npm run lint
+npm run build
+```
 
-- Dashboard responsivo com viagens demonstrativas.
-- Modal de criação de viagem apenas em memória; dados não persistem após recarregar.
-- Schema inicial Prisma para PostgreSQL.
-- Áreas de participantes, pagamentos, transporte e galeria ainda são placeholders.
-- Autenticação, autorização, Asaas, WhatsApp e armazenamento de fotos ainda não estão implementados.
+To prepare Prisma and your configured PostgreSQL database:
 
-## Design system
+```bash
+npm run db:generate
+npm run db:migrate
+```
 
-Referência: https://github.com/erikacarvalh0/erikacarvalho-ds
+Set `DATABASE_URL` before running migrations. The browser preview does not
+require a database connection.
 
-O design system tem workspace React, mas não está publicado como biblioteca reutilizável. O botão em `src/components/ui/button.tsx` é um adaptador **provisório**. A integração real deve usar os componentes do DS após empacotamento ou sincronização, sem alterar o repositório original.
+## Implemented in this PR
 
-## Git
+- Responsive dashboard, navigation, empty state and trip detail view.
+- Create a trip with name, optional dates, location and HTTPS map link.
+- Validate trip fields and date order with Zod.
+- Store preview trips **only in the current browser** using localStorage.
+- Model trips, membership roles, invitations, travel, payments and photos in Prisma.
+- Reuse the **actual React v2 design-system component APIs**: Button, Card,
+  Input and Select (locally vendored and reformatted).
 
-Branches: `feat/...`, `fix/...`, `chore/...`.
+## Design system integration
 
-Commits e PRs: Conventional Commits com escopo e Gitmoji, como `feat(app): :sparkles: add initial dashboard`.
+The reference repository is:
+https://github.com/erikacarvalh0/erikacarvalho-ds
 
-## Próximas etapas
+Its React v2 package is in `packages/react`, named `@erikacarvalho/react`.
+It has not yet been published. Therefore the four primitives and their tokens
+are sourced from upstream commit
+`915106759794f25d7f0751bdfd16ea2e55454623`
+and stored under `src/design-system`.
 
-Autenticação e RBAC por viagem, CRUD persistente, convites WhatsApp, integração Asaas com webhooks idempotentes e galeria privada.
+See `src/design-system/UPSTREAM.md` for replacement/migration notes.
+This avoids pretending that a non-published dependency can be installed.
+
+## Limitations
+
+**This is a local preview, not a production multi-user application.** Trips
+are not saved to PostgreSQL and are not shared between members. There is
+no authentication or authorization yet. The participants, payments,
+transportation and gallery sections are placeholders.
+
+Do not add unauthenticated write endpoints for trips, members or payments.
+The next milestone is secure authentication, trip-scoped RBAC and Prisma-backed
+operations. Asaas and WhatsApp integrations come after that.
+
+## Git and coding conventions
+
+Use feature branches and readable two-space indentation. Commit and PR
+content must be written in English and follow Conventional Commits + Gitmoji:
+
+```text
+feat(trips): :sparkles: add trip creation
+fix(ui): :bug: correct date validation
+chore(ci): :wrench: add build verification
+```
