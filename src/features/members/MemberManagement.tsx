@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 
 import { Button, Card } from "@/design-system";
 
@@ -100,6 +101,8 @@ export function MemberManagement({
       <p>
         {members.length} {members.length === 1 ? "participante" : "participantes"}
       </p>
+
+      <Link href={`/trips/${tripId}/travel`}>Informações de viagem e caronas</Link>
 
       {isAdmin && <InvitationControl tripId={tripId} />}
 
