@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 import { Button, Card, Input } from "@/design-system";
 
@@ -12,6 +13,8 @@ type AuthFormProps = {
 };
 
 export function AuthForm({ mode }: AuthFormProps) {
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") ?? "";
   const isRegistration = mode === "register";
   const [state, action, pending] = useActionState(
     isRegistration ? register : login,
@@ -50,6 +53,10 @@ export function AuthForm({ mode }: AuthFormProps) {
           required
           type="password"
         />
+
+        {!isRegistration && (
+          <input name="callbackUrl" type="hidden" value={callbackUrl} />
+        )}
 
         {state.error && <p role="alert">{state.error}</p>}
 

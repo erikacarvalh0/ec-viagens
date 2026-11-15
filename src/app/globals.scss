@@ -566,3 +566,88 @@ button {
   align-items: center;
   gap: 10px;
 }
+
+.members-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 42px 24px;
+}
+
+.members-page > a {
+  color: var(--ec-primary);
+  text-decoration: none;
+}
+
+.members-page > h1 {
+  font: 700 34px "Outfit", sans-serif;
+}
+
+.members-page > p:not(.eyebrow),
+.member-invitation p {
+  color: var(--app-muted);
+  font-size: 13px;
+}
+
+.member-invitation {
+  margin: 28px 0;
+}
+
+.member-invitation h2,
+.members-page .ec-card h2 {
+  font: 700 21px "Outfit", sans-serif;
+}
+
+.member-invitation__link {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+  overflow-wrap: anywhere;
+}
+
+.member-invitation__link a {
+  color: var(--ec-primary);
+  font-size: 13px;
+}
+
+.member-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.member-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 17px 0;
+  border-bottom: 1px solid var(--app-line);
+}
+
+.member-list li > div {
+  display: grid;
+  gap: 5px;
+}
+
+.member-list small,
+.member-list span {
+  color: var(--app-muted);
+  font-size: 12px;
+}
+
+.member-role-form {
+  display: grid;
+  gap: 5px;
+}
+
+.member-role-form small,
+.member-invitation [role="alert"] {
+  color: #b12b54;
+}
+
+@media (max-width: 650px) {
+  .member-list li {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

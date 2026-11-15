@@ -53,3 +53,20 @@ so end-to-end database operations must be verified against a configured database
 Before public deployment, add email verification, password reset, rate limiting
 on registration and login, audit logging, session invalidation, and full
 authorization tests. Do not store production secrets in the repository.
+
+## Test-driven development
+
+All new behavior must follow **Red → Green → Refactor**:
+
+1. Write a focused failing test that describes the expected behavior.
+2. Implement only enough production code to pass.
+3. Refactor with all tests green.
+
+Tests use Vitest and live next to their feature modules. Run `npm test` for
+the full unit suite or `npm run test:watch` while developing. GitHub Actions
+runs tests before typecheck, lint, and build. New PRs must include tests for
+happy paths, authorization failures, validation, and edge cases.
+
+Unit tests use mocked database boundaries; they do **not** replace PostgreSQL
+integration tests for transactional concurrency, database constraints, and
+authentication end-to-end. Add those before production release.
