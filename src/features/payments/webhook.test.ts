@@ -16,15 +16,18 @@ import { reconcileAsaasEvent } from "./webhook";
 
 const payment = {
   id: "pay-123",
+  value: 100.1,
   externalReference: "charge-a",
   paymentDate: "2026-11-15",
 };
 
 describe("Asaas webhook reconciliation", () => {
   beforeEach(() => {
+    mocks.createEvent.mockReset().mockResolvedValue({});
     mocks.findFirst.mockResolvedValue({
       id: "charge-a",
       asaasPaymentId: "pay-123",
+      amountCents: 10010,
       status: "PENDING",
       paidAt: null,
     });
@@ -86,6 +89,7 @@ describe("Asaas webhook reconciliation", () => {
     mocks.findFirst.mockResolvedValue({
       id: "charge-a",
       asaasPaymentId: "pay-123",
+      amountCents: 10010,
       status: "PAID",
       paidAt: new Date(),
     });
@@ -111,4 +115,57 @@ describe("Asaas webhook reconciliation", () => {
     expect(result).toBe("duplicate");
     expect(mocks.updateCharge).not.toHaveBeenCalled();
   });
+
+  it.each([99, 100.101, undefined, Number.MAX_SAFE_INTEGER, 1e308])(
+    "records a divergent amount (%s) without changing the balance",
+    async (value) => {
+      const result = await reconcileAsaasEvent({
+        id: "evt-mismatch",
+        event: "PAYMENT_RECEIVED",
+        payment: { ...payment, value },
+      });
+
+      expect(result).toBe("divergent");
+      expect(mocks.createEvent).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          externalEventId: "evt-mismatch",
+          eventType: "PAYMENT_AMOUNT_MISMATCH",
+          payload: expect.objectContaining({ localAmountCents: 10010 }),
+        }),
+      });
+      expect(mocks.updateCharge).not.toHaveBeenCalled();
+    },
+  );
+
+  it("compares against the current transactional amount", async () => {
+    mocks.findCurrent.mockResolvedValueOnce({
+      id: "charge-a", asaasPaymentId: "pay-123", amountCents: 12000,
+      status: "PENDING", paidAt: null,
+    });
+
+    expect(await reconcileAsaasEvent({
+      id: "evt-concurrent", event: "PAYMENT_RECEIVED", payment,
+    })).toBe("divergent");
+    expect(mocks.updateCharge).not.toHaveBeenCalled();
+  });
+
+  it("deduplicates discrepancies and allows a new corrected event", async () => {
+    mocks.createEvent.mockResolvedValueOnce({})
+      .mockRejectedValueOnce({ code: "P2002" })
+      .mockResolvedValueOnce({});
+    const event = {
+      id: "evt-mismatch",
+      event: "PAYMENT_RECEIVED",
+      payment: { ...payment, value: 90 },
+    };
+
+    expect(await reconcileAsaasEvent(event)).toBe("divergent");
+    expect(await reconcileAsaasEvent(event)).toBe("duplicate");
+    expect(mocks.updateCharge).not.toHaveBeenCalled();
+    expect(await reconcileAsaasEvent({
+      ...event, id: "evt-corrected", payment,
+    })).toBe("processed");
+    expect(mocks.updateCharge).toHaveBeenCalledTimes(1);
+  });
+
 });

@@ -8,6 +8,7 @@ const webhookSchema = z.object({
   event: z.string().min(1),
   payment: z.object({
     id: z.string().min(1),
+    value: z.number().finite().nonnegative().optional(),
     externalReference: z.string().nullish(),
     paymentDate: z.string().nullish(),
     confirmedDate: z.string().nullish(),
@@ -55,20 +56,39 @@ export async function reconcileAsaasEvent(input: unknown) {
   }
 
   try {
-    await prisma.$transaction(async (transaction) => {
+    const result = await prisma.$transaction(async (transaction) => {
+      const current = await transaction.charge.findUniqueOrThrow({
+        where: { id: charge.id },
+      });
+      const remoteValue = event.payment.value;
+      const remoteCents = remoteValue === undefined
+        ? null
+        : Math.round(remoteValue * 100);
+      const amountMismatch = remoteValue === undefined || remoteCents === null ||
+        !Number.isSafeInteger(remoteCents) ||
+        Math.abs(remoteValue * 100 - remoteCents) > 0.000001 ||
+        remoteCents !== current.amountCents;
+
       // A unique event ID prevents replay and simultaneous duplicate processing.
       await transaction.paymentEvent.create({
         data: {
           chargeId: charge.id,
           externalEventId: event.id,
-          eventType: event.event,
-          payload: event as Prisma.InputJsonValue,
+          eventType: amountMismatch ? "PAYMENT_AMOUNT_MISMATCH" : event.event,
+          payload: amountMismatch
+            ? {
+              event,
+              localAmountCents: current.amountCents,
+              remoteAmountCents: Number.isSafeInteger(remoteCents) ? remoteCents : null,
+            } as Prisma.InputJsonValue
+            : event as Prisma.InputJsonValue,
         },
       });
 
-      const current = await transaction.charge.findUniqueOrThrow({
-        where: { id: charge.id },
-      });
+      if (amountMismatch) {
+        return "divergent" as const;
+      }
+
       const terminal = current.status === "REFUNDED" || current.status === "CANCELLED";
       const downgradePaid = current.status === "PAID" &&
         (status === "OVERDUE" || status === "PENDING");
@@ -101,6 +121,10 @@ export async function reconcileAsaasEvent(input: unknown) {
         },
       });
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+
+    if (result === "divergent") {
+      return result;
+    }
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
