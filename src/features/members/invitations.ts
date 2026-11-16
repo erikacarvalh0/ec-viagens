@@ -12,7 +12,10 @@ function hashToken(token: string): string {
 }
 
 export async function createInvitation(tripId: string) {
-  await requireTripAdmin(tripId);
+  const membership = await requireTripAdmin(tripId);
+  if (membership.trip.archivedAt) {
+    throw new Error("Archived trips cannot accept new invitations.");
+  }
 
   const token = randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + INVITATION_LIFETIME_MS);
@@ -36,7 +39,7 @@ export async function getInvitation(token: string) {
 
   return prisma.invitation.findUnique({
     where: { tokenHash: hashToken(token) },
-    include: { trip: { select: { name: true } } },
+    include: { trip: { select: { name: true, archivedAt: true } } },
   });
 }
 
@@ -50,6 +53,10 @@ export async function acceptInvitation(token: string) {
     invitation.expiresAt <= new Date()
   ) {
     throw new Error("This invitation is invalid or expired.");
+  }
+
+  if (invitation.trip.archivedAt) {
+    throw new Error("Archived trips cannot accept new invitations.");
   }
 
   await prisma.$transaction(async (transaction) => {
