@@ -7,6 +7,6 @@ describe("financial CSV export", () => {
     expect(csv).toContain("12,50;5,00;7,50");
   });
   it("includes a UTF-8 BOM and header", () => {
-    expect(financialReportCsv([])).toBe("\uFEFFParticipante;Previsto (BRL);Pago (BRL);A receber (BRL)\r\n");
+    expect(financialReportCsv([])).toBe("\uFEFFParticipante;Previsto (BRL);Pago (BRL);A receber (BRL)\r\nTOTAL;0,00;0,00;0,00\r\n");
   });
 });
