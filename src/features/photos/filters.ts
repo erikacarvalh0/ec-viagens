@@ -3,7 +3,7 @@ import { z } from "zod";
 export const photoGalleryQuerySchema = z.object({
   uploaderId: z.string().regex(/^[a-zA-Z0-9_-]{1,128}$/).optional(),
   search: z.string().max(100).optional(),
-  captioned: z.enum(["yes"]).optional(),
+  captioned: z.enum(["yes", "no"]).optional(),
 });
 
 export type PhotoGalleryFilter = z.infer<typeof photoGalleryQuerySchema>;
@@ -13,7 +13,7 @@ export function buildPhotoFilter(tripId: string, filters: PhotoGalleryFilter) {
   return {
     tripId,
     ...(filters.uploaderId ? { uploadedById: filters.uploaderId } : {}),
-    ...(search || filters.captioned === "yes" ? { caption: {
+    ...(filters.captioned === "no" && !search ? { caption: null } : search || filters.captioned === "yes" ? { caption: {
       ...(search ? { contains: search, mode: "insensitive" as const } : {}),
       ...(filters.captioned === "yes" ? { not: null } : {}),
     } } : {}),
