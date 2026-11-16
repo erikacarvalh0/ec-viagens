@@ -4,6 +4,14 @@ export function filterTripsByArchive(trips: Trip[], archived: boolean): Trip[] {
   return trips.filter((trip) => Boolean(trip.archivedAt) === archived);
 }
 
+export function getTripBackSection(_archived: boolean): "trips" {
+  return "trips";
+}
+
+export function getTripBackLabel(archived: boolean): string {
+  return archived ? "Voltar ao histórico" : "Voltar às viagens";
+}
+
 export function tripHistoryCopy(archived: boolean) {
   return archived
     ? {
