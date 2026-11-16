@@ -8,10 +8,10 @@ import { prisma } from "@/lib/prisma";
 import { tripDraftSchema, type TripDraft } from "./trip";
 
 export async function saveTripChanges(tripId: string, draft: TripDraft) {
-  await requireTripAdmin(tripId);
+  const actor = await requireTripAdmin(tripId);
   const validated = tripDraftSchema.parse(draft);
   const updated = await prisma.trip.updateMany({
-    where: { id: tripId },
+    where: { id: tripId, memberships: { some: { userId: actor.userId, role: "ADMIN" } } },
     data: {
       name: validated.name,
       startsAt: validated.startsAt ? new Date(`${validated.startsAt}T12:00:00Z`) : null,
