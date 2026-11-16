@@ -27,7 +27,7 @@ export async function updateReminderConsent(consent: boolean) {
           kind: "PAYMENT_REMINDER",
           status: "PENDING",
           recipientWhatsapp: user.whatsapp,
-          referenceId: { in: charges.map((charge) => charge.id) },
+          ...(charges ? { referenceId: { in: charges.map((charge) => charge.id) } } : {}),
         },
         data: { status: "CANCELLED" },
       });
