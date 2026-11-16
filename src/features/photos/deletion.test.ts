@@ -5,12 +5,14 @@ const mocks = vi.hoisted(() => ({
   findFirst: vi.fn(),
   deleteMany: vi.fn(),
   removeObject: vi.fn(),
+  revalidate: vi.fn(),
 }));
 vi.mock("@/features/members/permissions", () => ({ requireTripMember: mocks.member }));
 vi.mock("@/lib/prisma", () => ({
   prisma: { photo: { findFirst: mocks.findFirst, deleteMany: mocks.deleteMany } },
 }));
 vi.mock("./storage", () => ({ deletePrivatePhoto: mocks.removeObject }));
+vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidate }));
 
 import { deleteTripPhoto } from "./deletion";
 
@@ -33,6 +35,7 @@ describe("trip photo deletion", () => {
     expect(mocks.deleteMany).toHaveBeenCalledWith({
       where: { id: "photo-1", tripId: "trip-1" },
     });
+    expect(mocks.revalidate).toHaveBeenCalledWith("/trips/trip-1/photos");
   });
 
   it("allows a trip admin to delete photos", async () => {
