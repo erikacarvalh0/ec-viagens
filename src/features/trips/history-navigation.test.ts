@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getTripBackLabel, getTripBackSection } from "./history";
+import { getTripBackLabel } from "./history";
 
 describe("trip history navigation", () => {
   it("returns archived trips to the history section", () => {
