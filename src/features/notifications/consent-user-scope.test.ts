@@ -13,6 +13,7 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {
     user: { update: mocks.update },
     notification: { updateMany: mocks.updateMany },
+    charge: { findMany: mocks.findMany },
   },
 }));
 vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidate }));
