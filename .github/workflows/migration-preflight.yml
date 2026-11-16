@@ -1,0 +1,26 @@
+name: Migration Baseline Preflight
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "prisma/migrations/**"
+      - "src/integration/migration-preflight*"
+      - ".github/workflows/migration-preflight.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  migration-preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - run: npm install --no-audit --no-fund
+      - run: npx vitest run src/integration/migration-preflight.test.ts
+      - name: Block incomplete migration histories
+        run: npx --yes tsx src/integration/migration-preflight.cli.ts
