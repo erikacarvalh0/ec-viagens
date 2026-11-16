@@ -12,7 +12,7 @@ import { prisma } from "@/lib/prisma";
 export default async function TripPhotosPage({
   params,
   searchParams,
-}: { params: Promise<{ tripId: string }>; searchParams: Promise<{ cursor?: string; uploaderId?: string; search?: string }> }) {
+}: { params: Promise<{ tripId: string }>; searchParams: Promise<{ cursor?: string; uploaderId?: string; search?: string; captioned?: string }> }) {
   const { tripId } = await params;
   const membership = await requireTripMember(tripId);
   const query = await searchParams;
@@ -52,6 +52,11 @@ export default async function TripPhotosPage({
         <select id="photo-uploader" name="uploaderId" defaultValue={safeFilters.uploaderId || ""}>
           <option value="">Todas as participantes</option>
           {uploaders.map((user) => <option key={user.id} value={user.id}>{user.name}</option>)}
+        </select>
+        <label htmlFor="photo-captioned">Legendas</label>
+        <select id="photo-captioned" name="captioned" defaultValue={safeFilters.captioned || ""}>
+          <option value="">Todas as fotos</option>
+          <option value="yes">Somente fotos com legenda</option>
         </select>
         <button type="submit">Filtrar fotos</button>
         <Link href={`/trips/${tripId}/photos`}>Limpar filtros</Link>
