@@ -11,16 +11,15 @@ export async function resolveNotificationReview(
 ) {
   try {
     await requireTripAdmin(tripId);
+    const chargeIds = (await prisma.charge.findMany({
+      where: { plan: { tripId } },
+      select: { id: true },
+    })).map((charge) => charge.id);
     const notification = await prisma.notification.findFirst({
       where: {
         id: notificationId,
         kind: "PAYMENT_REMINDER",
-        referenceId: {
-          in: (await prisma.charge.findMany({
-            where: { plan: { tripId } },
-            select: { id: true },
-          })).map((charge) => charge.id),
-        },
+        referenceId: { in: chargeIds },
       },
     });
 
@@ -29,7 +28,12 @@ export async function resolveNotificationReview(
     }
 
     const result = await prisma.notification.updateMany({
-      where: { id: notification.id, status: "REVIEW_REQUIRED" },
+      where: {
+        id: notification.id,
+        kind: "PAYMENT_REMINDER",
+        referenceId: { in: chargeIds },
+        status: "REVIEW_REQUIRED",
+      },
       data: { status: "REVIEWED" },
     });
     if (result.count !== 1) {
