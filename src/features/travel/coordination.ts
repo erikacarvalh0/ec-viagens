@@ -16,23 +16,24 @@ export function getCoordinationGroups<T extends CoordinationMember>(
   currentMemberId: string,
 ) {
   const current = members.find((member) => member.id === currentMemberId);
+  const otherMembers = members.filter((member) => member.id !== currentMemberId);
 
   return {
     rideSeekers: current?.travel?.offersRide
-      ? members.filter((member) => member.travel?.needsRide)
+      ? otherMembers.filter((member) => member.travel?.needsRide)
       : [],
     rideOffers: current?.travel?.needsRide
-      ? members.filter((member) => member.travel?.offersRide)
+      ? otherMembers.filter((member) => member.travel?.offersRide)
       : [],
     outboundRideOffers: current?.travel?.needsRide
-      ? members.filter((member) => member.travel?.offersRide && member.travel.rideOutbound)
+      ? otherMembers.filter((member) => member.travel?.offersRide && member.travel.rideOutbound)
       : [],
     returnRideOffers: current?.travel?.needsRide
-      ? members.filter((member) => member.travel?.offersRide && member.travel.rideReturn)
+      ? otherMembers.filter((member) => member.travel?.offersRide && member.travel.rideReturn)
       : [],
     uberSharing: current?.travel?.shareUber
-      ? members.filter((member) => member.travel?.shareUber)
+      ? otherMembers.filter((member) => member.travel?.shareUber)
       : [],
-    vanInterested: members.filter((member) => member.travel?.interestedVan),
+    vanInterested: otherMembers.filter((member) => member.travel?.interestedVan),
   };
 }
