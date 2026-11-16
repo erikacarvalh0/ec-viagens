@@ -25,6 +25,7 @@ export default async function DashboardPage() {
     locationName: trip.locationName ?? "",
     mapUrl: trip.mapUrl ?? "",
     createdAt: trip.createdAt.toISOString(),
+    archivedAt: trip.archivedAt?.toISOString() ?? null,
   }));
 
   return (

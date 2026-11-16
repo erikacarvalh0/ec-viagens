@@ -60,6 +60,7 @@ model Trip {
   address      String?
   mapUrl       String?
   createdAt    DateTime      @default(now())
+  archivedAt   DateTime?
   memberships  TripMember[]
   invitations  Invitation[]
   paymentPlans PaymentPlan[]

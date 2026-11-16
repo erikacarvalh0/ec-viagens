@@ -45,6 +45,7 @@ export type TripDraft = z.infer<typeof tripDraftSchema>;
 export type Trip = TripDraft & {
   id: string;
   createdAt: string;
+  archivedAt?: string | null;
 };
 
 export function formatTripDates(trip: Trip): string {

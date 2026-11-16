@@ -23,9 +23,12 @@ export function Dashboard({ initialTrips }: DashboardProps) {
   const [section, setSection] = useState<Section>("overview");
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
   const [trips, setTrips] = useState(initialTrips);
   const selectedTrip = trips.find((trip) => trip.id === selectedTripId);
   const showTrips = section === "overview" || section === "trips";
+  // Keep all member trips in memory; archive status only changes the visible list.
+  const visibleTrips = trips.filter((trip) => Boolean(trip.archivedAt) === showArchived);
 
   return (
     <AppShell currentSection={section} onNavigate={setSection}>
@@ -51,6 +54,12 @@ export function Dashboard({ initialTrips }: DashboardProps) {
       </div>
 
       {showTrips ? (
+        <>
+        <div className="dashboard-actions">
+          <Button type="button" variant="secondary" onClick={() => setShowArchived((current) => !current)}>
+            {showArchived ? "Ver viagens ativas" : "Histórico de viagens"}
+          </Button>
+        </div>
         <TripOverview
           hydrated
           onCreate={() => setIsFormOpen(true)}
@@ -58,8 +67,9 @@ export function Dashboard({ initialTrips }: DashboardProps) {
             setSelectedTripId(id);
             setSection("details");
           }}
-          trips={trips}
+          trips={visibleTrips}
         />
+        </>
       ) : section === "details" && selectedTrip ? (
         <TripDetails onBack={() => setSection("trips")} trip={selectedTrip} />
       ) : (
