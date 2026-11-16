@@ -25,6 +25,10 @@ export async function verifyPassword(
     return false;
   }
 
+  if (!/^[a-f0-9]{32}$/i.test(salt) || !/^[a-f0-9]{128}$/i.test(expectedHex)) {
+    return false;
+  }
+
   const expected = Buffer.from(expectedHex, "hex");
 
   if (expected.length !== KEY_LENGTH) {
