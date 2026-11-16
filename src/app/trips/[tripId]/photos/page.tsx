@@ -4,6 +4,7 @@ import { Card } from "@/design-system";
 import { requireTripMember } from "@/features/members/permissions";
 import { PhotoUploadForm } from "@/features/photos/PhotoUploadForm";
 import { DeletePhotoButton } from "@/features/photos/DeletePhotoButton";
+import { EditCaptionForm } from "@/features/photos/EditCaptionForm";
 import { PHOTO_PAGE_SIZE, getNextPhotoCursor, photoPageSchema } from "@/features/photos/pagination";
 import { prisma } from "@/lib/prisma";
 
@@ -49,7 +50,14 @@ export default async function TripPhotosPage({
             {photo.caption && <p>{photo.caption}</p>}
             <p>Enviada por {photo.uploadedBy.name}</p>
             {(membership.role === "ADMIN" || photo.uploadedById === membership.userId) && (
-              <DeletePhotoButton tripId={tripId} photoId={photo.id} />
+              <>
+                <EditCaptionForm
+                  tripId={tripId}
+                  photoId={photo.id}
+                  initialCaption={photo.caption || ""}
+                />
+                <DeletePhotoButton tripId={tripId} photoId={photo.id} />
+              </>
             )}
           </Card>
         ))}
