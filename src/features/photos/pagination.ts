@@ -7,8 +7,11 @@ export const photoPageSchema = z.object({
 });
 
 export function getNextPhotoCursor<T extends { id: string }>(
-  photos: T[],
+  photos: readonly T[],
   pageSize = PHOTO_PAGE_SIZE,
 ) {
+  if (!Number.isSafeInteger(pageSize) || pageSize < 1 || pageSize > 100) {
+    throw new Error("Invalid photo page size.");
+  }
   return photos.length > pageSize ? photos[pageSize - 1].id : null;
 }
