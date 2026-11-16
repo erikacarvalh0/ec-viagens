@@ -31,4 +31,22 @@ describe("authentication validation", () => {
       }).success,
     ).toBe(false);
   });
+
+  it.each([1, 128])("accepts login passwords of %i characters", (length) => {
+    expect(
+      loginSchema.safeParse({
+        email: "ana@example.com",
+        password: "a".repeat(length),
+      }).success,
+    ).toBe(true);
+  });
+
+  it.each([0, 129])("rejects login passwords of %i characters", (length) => {
+    expect(
+      loginSchema.safeParse({
+        email: "ana@example.com",
+        password: "a".repeat(length),
+      }).success,
+    ).toBe(false);
+  });
 });
