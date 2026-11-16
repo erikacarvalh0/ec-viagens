@@ -33,6 +33,7 @@ describe("recovering a charge after an Asaas request failure", () => {
     });
     mocks.findPayment.mockResolvedValue({
       id: "pay-a",
+      externalReference: "charge-a",
       invoiceUrl: "https://sandbox.asaas.com/i/abc",
       status: "PENDING",
     });
@@ -60,6 +61,18 @@ describe("recovering a charge after an Asaas request failure", () => {
     const result = await recoverCharge("trip-a", "charge-a");
     expect(result.success).toBeUndefined();
     expect(result.error).toContain("outra operação");
+  });
+
+  it("rejects a provider payment with a mismatched reference", async () => {
+    mocks.findPayment.mockResolvedValue({
+      id: "pay-other",
+      externalReference: "another-charge",
+      invoiceUrl: "https://sandbox.asaas.com/i/other",
+      status: "PENDING",
+    });
+    const result = await recoverCharge("trip-a", "charge-a");
+    expect(result.error).toContain("referência");
+    expect(mocks.updateMany).not.toHaveBeenCalled();
   });
 
   it("prevents access by non-admins", async () => {
