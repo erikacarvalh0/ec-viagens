@@ -14,7 +14,7 @@ describe("complete password reset", () => {
  });
  it("updates the password and consumes the token atomically", async () => {
   await completePasswordReset({token:"a".repeat(64),password:"secure-password-123"});
-  expect(mocks.userUpdate).toHaveBeenCalledWith({where:{id:"user-1"},data:{passwordHash:"new-hash"}});
+  expect(mocks.userUpdate).toHaveBeenCalledWith({where:{id:"user-1"},data:{passwordHash:"new-hash",sessionVersion:{increment:1}}});
   expect(mocks.updateMany).toHaveBeenCalledWith(expect.objectContaining({where:expect.objectContaining({usedAt:null}),data:{usedAt:expect.any(Date)}}));
   expect(mocks.transaction).toHaveBeenCalledTimes(1);
  });

@@ -44,6 +44,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         return {
+          sessionVersion: user.sessionVersion,
           id: user.id,
           name: user.name,
           email: user.email,
@@ -52,11 +53,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    jwt({ token, user }) {
+    async jwt({ token, user }) {
       if (user) {
         token.userId = user.id;
+        token.sessionVersion = user.sessionVersion;
+        return token;
       }
 
+      if (typeof token.userId !== "string" || typeof token.sessionVersion !== "number") {
+        return null;
+      }
+      const current = await prisma.user.findUnique({
+        where: { id: token.userId },
+        select: { sessionVersion: true },
+      });
+      if (!current || current.sessionVersion !== token.sessionVersion) {
+        return null;
+      }
       return token;
     },
     session({ session, token }) {
