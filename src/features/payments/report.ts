@@ -36,6 +36,11 @@ export function buildFinancialReport(charges: ReportCharge[]) {
       continue;
     }
 
+    // All other totals are nonnegative subsets of the expected revenue.
+    if (!Number.isSafeInteger(report.expectedCents + charge.amountCents)) {
+      throw new Error("Invalid report total.");
+    }
+
     const balance = report.byMember[charge.memberId] ?? {
       expectedCents: 0,
       paidCents: 0,
