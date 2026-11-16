@@ -13,7 +13,10 @@ export function buildPhotoFilter(tripId: string, filters: PhotoGalleryFilter) {
   return {
     tripId,
     ...(filters.uploaderId ? { uploadedById: filters.uploaderId } : {}),
-    ...(search ? { caption: { contains: search, mode: "insensitive" as const } } : filters.captioned === "yes" ? { caption: { not: null } } : {}),
+    ...(search || filters.captioned === "yes" ? { caption: {
+      ...(search ? { contains: search, mode: "insensitive" as const } : {}),
+      ...(filters.captioned === "yes" ? { not: null } : {}),
+    } } : {}),
   };
 }
 
