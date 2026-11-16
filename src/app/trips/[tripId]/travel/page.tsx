@@ -27,9 +27,11 @@ export default async function TravelPage({ params }: PageProps) {
     notFound();
   }
 
+  // Only retrieve the display name for other participants. Their contact
+  // details and account credentials are not needed for ride coordination.
   const members = await prisma.tripMember.findMany({
     where: { tripId },
-    include: { user: true, travel: true },
+    include: { user: { select: { name: true } }, travel: true },
   });
 
   const groups = getCoordinationGroups(
