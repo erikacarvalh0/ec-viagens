@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { Card } from "@/design-system";
 import { getCoordinationGroups } from "@/features/travel/coordination";
+import { countRideDirections } from "@/features/travel/ride-counts";
 import { TravelForm } from "@/features/travel/TravelForm";
 import { RideOfferList } from "@/features/travel/RideOfferList";
 import { prisma } from "@/lib/prisma";
@@ -40,6 +41,8 @@ export default async function TravelPage({ params }: PageProps) {
     current.id,
   );
 
+  const rideCounts = countRideDirections(groups.rideOffers);
+
   const profile = {
     city: current.user.city ?? "",
     state: current.user.state ?? "",
@@ -73,6 +76,7 @@ export default async function TravelPage({ params }: PageProps) {
       <h1>{current.trip.name}</h1>
       <TravelForm isAdmin={current.role === "ADMIN"} profile={profile} tripId={tripId} />
 
+      <p>Ofertas de carona: {rideCounts.outbound} para ida e {rideCounts.return} para volta.</p>
       <section className="travel-groups">
         <RideOfferList members={groups.rideOffers.map(({ id, name, travel }) => ({ id, name, travel: travel ? { rideOutbound: travel.rideOutbound, rideReturn: travel.rideReturn } : null }))} />
         {sections.map((section) => (
