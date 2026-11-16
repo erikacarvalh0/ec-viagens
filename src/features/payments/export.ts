@@ -12,6 +12,9 @@ function cell(value: string): string {
 }
 
 function amount(cents: number): string {
+  if (!Number.isSafeInteger(cents) || cents < 0) {
+    throw new Error("Invalid export amount.");
+  }
   return (cents / 100).toFixed(2).replace(".", ",");
 }
 
