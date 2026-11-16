@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
  findUnique: vi.fn(),
+ findFirst: vi.fn(),
  store: vi.fn(),
  deliver: vi.fn(),
 }));
-vi.mock("@/lib/prisma", () => ({ prisma: { user: { findUnique: mocks.findUnique } } }));
+vi.mock("@/lib/prisma", () => ({ prisma: { user: { findUnique: mocks.findUnique }, passwordResetToken: { findFirst: mocks.findFirst } } }));
 vi.mock("./password-reset-store", () => ({ storePasswordResetToken: mocks.store }));
 import { requestPasswordReset } from "./password-reset-request";
 
@@ -12,6 +13,7 @@ describe("requestPasswordReset", () => {
  beforeEach(() => {
   vi.clearAllMocks();
   mocks.store.mockResolvedValue("a".repeat(64));
+  mocks.findFirst.mockResolvedValue(null);
   mocks.deliver.mockResolvedValue(undefined);
  });
  it("normalizes email and delivers a token only for existing users", async () => {

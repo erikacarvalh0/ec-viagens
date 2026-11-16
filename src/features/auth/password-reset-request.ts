@@ -21,6 +21,12 @@ export async function requestPasswordReset(
 
   if (!user) return;
 
+  const recentToken = await prisma.passwordResetToken.findFirst({
+    where: { userId: user.id, createdAt: { gt: new Date(Date.now() - 15 * 60 * 1000) } },
+    select: { id: true },
+  });
+  if (recentToken) return;
+
   const token = await storePasswordResetToken(user.id);
   await deliver(user.email, token);
 }
