@@ -25,6 +25,13 @@ describe("trip validation", () => {
     ).toBe(false);
   });
 
+  it("rejects excessively long map links", () => {
+    expect(tripDraftSchema.safeParse({
+      ...draft,
+      mapUrl: `https://example.com/${"a".repeat(2048)}`,
+    }).success).toBe(false);
+  });
+
   it("rejects insecure map links", () => {
     expect(
       tripDraftSchema.safeParse({
