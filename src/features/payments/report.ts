@@ -25,7 +25,7 @@ export function buildFinancialReport(charges: ReportCharge[]) {
     pendingCents: 0,
     overdueCents: 0,
     outstandingCents: 0,
-    byMember: {},
+    byMember: Object.create(null),
   };
 
   for (const charge of charges) {
