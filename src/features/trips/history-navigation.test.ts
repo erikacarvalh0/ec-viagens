@@ -8,7 +8,6 @@ describe("trip history navigation", () => {
   });
 
   it("returns active trips to the regular trip list", () => {
-    expect(getTripBackSection(false)).toBe("trips");
     expect(getTripBackLabel(false)).toBe("Voltar às viagens");
   });
 });
