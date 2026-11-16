@@ -1,6 +1,6 @@
 import { createHash, createHmac } from "node:crypto";
 
-type Method = "GET" | "PUT";
+type Method = "GET" | "PUT" | "DELETE";
 
 function sha256(value: Uint8Array | string) {
   return createHash("sha256").update(value).digest("hex");
@@ -62,4 +62,8 @@ export async function uploadPrivatePhoto(key: string, bytes: Uint8Array, content
 
 export async function downloadPrivatePhoto(key: string) {
   return s3Request("GET", key);
+}
+
+export async function deletePrivatePhoto(key: string) {
+  await s3Request("DELETE", key);
 }
