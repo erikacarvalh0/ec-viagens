@@ -58,4 +58,24 @@ describe("ride coordination", () => {
 
     expect(groups.uberSharing.map((member) => member.id)).toEqual(["ana"]);
   });
+  it("does not expose Uber sharing members to participants who did not opt in", () => {
+    const groups = getCoordinationGroups(members, "bia");
+    expect(groups.uberSharing).toEqual([]);
+  });
+
+  it("does not expose ride offers when the current member is not seeking a ride", () => {
+    const groups = getCoordinationGroups(members, "clara");
+    expect(groups.rideOffers).toEqual([]);
+    expect(groups.outboundRideOffers).toEqual([]);
+    expect(groups.returnRideOffers).toEqual([]);
+  });
+
+  it("does not expose coordination groups to a missing member", () => {
+    const groups = getCoordinationGroups(members, "not-in-trip");
+    expect(groups.rideSeekers).toEqual([]);
+    expect(groups.rideOffers).toEqual([]);
+    expect(groups.outboundRideOffers).toEqual([]);
+    expect(groups.returnRideOffers).toEqual([]);
+    expect(groups.uberSharing).toEqual([]);
+  });
 });
