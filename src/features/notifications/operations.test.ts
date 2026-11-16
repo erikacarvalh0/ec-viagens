@@ -3,12 +3,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   admin: vi.fn(),
   findFirst: vi.fn(),
+  charges: vi.fn(),
   updateMany: vi.fn(),
   revalidate: vi.fn(),
 }));
 vi.mock("@/features/members/permissions", () => ({ requireTripAdmin: mocks.admin }));
 vi.mock("@/lib/prisma", () => ({
   prisma: {
+    charge: { findMany: mocks.charges },
     notification: {
       findFirst: mocks.findFirst,
       updateMany: mocks.updateMany,
@@ -23,6 +25,7 @@ describe("notification review", () => {
   beforeEach(() => {
     mocks.admin.mockResolvedValue({ id: "admin" });
     mocks.findFirst.mockResolvedValue({ id: "notification-1", status: "REVIEW_REQUIRED" });
+    mocks.charges.mockResolvedValue([{ id: "charge-1" }]);
     mocks.updateMany.mockResolvedValue({ count: 1 });
   });
 
