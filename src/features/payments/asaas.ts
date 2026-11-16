@@ -23,7 +23,9 @@ async function asaasPost<T>(path: string, body: object): Promise<T> {
     ? "https://api.asaas.com"
     : "https://api-sandbox.asaas.com";
 
-  const response = await fetch(`${host}/v3/${path}`, {
+  let response: Response;
+  try {
+    response = await fetch(`${host}/v3/${path}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -31,7 +33,11 @@ async function asaasPost<T>(path: string, body: object): Promise<T> {
     },
     body: JSON.stringify(body),
     cache: "no-store",
-  });
+    signal: AbortSignal.timeout(15_000),
+    });
+  } catch {
+    throw new Error("Asaas API request failed.");
+  }
 
   if (!response.ok) {
     throw new Error(`Asaas API request failed (HTTP ${response.status}).`);
@@ -82,10 +88,16 @@ export async function findAsaasPaymentByReference(reference: string) {
     : "https://api-sandbox.asaas.com";
 
   const query = new URLSearchParams({ externalReference: reference });
-  const response = await fetch(`${host}/v3/payments?${query}`, {
+  let response: Response;
+  try {
+    response = await fetch(`${host}/v3/payments?${query}`, {
     headers: { access_token: apiKey },
     cache: "no-store",
-  });
+    signal: AbortSignal.timeout(15_000),
+    });
+  } catch {
+    throw new Error("Asaas payment lookup failed.");
+  }
 
   if (!response.ok) {
     throw new Error(`Asaas payment lookup failed (HTTP ${response.status}).`);
