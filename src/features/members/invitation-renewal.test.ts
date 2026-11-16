@@ -18,7 +18,7 @@ describe("invitation renewal", () => {
     vi.clearAllMocks();
     mocks.requireTripAdmin.mockResolvedValue({ id: "admin" });
     mocks.findFirst.mockResolvedValue({
-      id: "invite-a", tripId: "trip-a", status: "PENDING",
+      id: "invite-a", tripId: "trip-a", whatsapp: "", status: "PENDING",
       expiresAt: new Date(Date.now() - 60_000),
     });
     mocks.updateMany.mockResolvedValue({ count: 1 });
