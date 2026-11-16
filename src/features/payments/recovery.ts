@@ -50,14 +50,23 @@ export async function recoverCharge(
             ? "CANCELLED"
             : "PENDING";
 
-    await prisma.charge.update({
-      where: { id: charge.id },
+    // Claim only an unlinked pending charge to avoid overwriting a
+    // concurrent webhook or a second recovery attempt.
+    const updated = await prisma.charge.updateMany({
+      where: {
+        id: charge.id,
+        status: "PENDING",
+        asaasPaymentId: null,
+      },
       data: {
         asaasPaymentId: payment.id,
         paymentUrl: payment.invoiceUrl,
         status,
       },
     });
+    if (updated.count !== 1) {
+      return { error: "A cobrança foi atualizada por outra operação. Atualize a página." };
+    }
 
     revalidatePath(`/trips/${tripId}/payments`);
     return { error: "", success: true };
