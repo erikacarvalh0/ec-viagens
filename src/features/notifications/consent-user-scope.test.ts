@@ -40,7 +40,7 @@ describe("consent revocation ownership", () => {
         kind: "PAYMENT_REMINDER",
         status: "PENDING",
         recipientWhatsapp: "5511999999999",
-        referenceId: { in: expect.any(Array) },
+        referenceId: { in: ["charge-1"] },
       },
       data: { status: "CANCELLED" },
     });
