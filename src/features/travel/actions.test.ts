@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   requireTripMember: vi.fn(),
   update: vi.fn(),
   upsert: vi.fn(),
+  findMembership: vi.fn(),
   transaction: vi.fn(),
   revalidatePath: vi.fn(),
 }));
@@ -49,6 +50,7 @@ function makeForm() {
 
 describe("travel details actions", () => {
   beforeEach(() => {
+    mocks.findMembership.mockResolvedValue({ id: "membership-a" });
     mocks.requireTripMember.mockResolvedValue({
       id: "membership-a",
       userId: "user-a",
@@ -56,6 +58,7 @@ describe("travel details actions", () => {
     });
     mocks.transaction.mockImplementation(async (callback) =>
       callback({
+        tripMember: { findFirst: mocks.findMembership },
         user: { update: mocks.update },
         travelInfo: { upsert: mocks.upsert },
       }),
@@ -96,6 +99,22 @@ describe("travel details actions", () => {
 
     expect(result.error).not.toBe("");
     expect(mocks.transaction).not.toHaveBeenCalled();
+  });
+
+  it("rechecks trip membership before writing profile and travel data", async () => {
+    await saveTravelDetails("trip-a", { error: "" }, makeForm());
+    expect(mocks.findMembership).toHaveBeenCalledWith({
+      where: { id: "membership-a", tripId: "trip-a", userId: "user-a" },
+      select: { id: true },
+    });
+  });
+
+  it("rejects a membership revoked between authorization and transaction", async () => {
+    mocks.findMembership.mockResolvedValueOnce(null);
+    const result = await saveTravelDetails("trip-a", { error: "" }, makeForm());
+    expect(result.error).not.toBe("");
+    expect(mocks.update).not.toHaveBeenCalled();
+    expect(mocks.upsert).not.toHaveBeenCalled();
   });
 
   it("rejects malformed admin WhatsApp without touching the database", async () => {

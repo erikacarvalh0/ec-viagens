@@ -58,6 +58,16 @@ export async function saveTravelDetails(
 
   try {
     await prisma.$transaction(async (transaction) => {
+      // Membership can be revoked after the initial form authorization.
+      // Recheck inside the write transaction before changing user or travel data.
+      const activeMembership = await transaction.tripMember.findFirst({
+        where: { id: membership.id, tripId, userId: membership.userId },
+        select: { id: true },
+      });
+      if (!activeMembership) {
+        throw new Error("Trip membership no longer active.");
+      }
+
       await transaction.user.update({
         where: { id: membership.userId },
         data: {
