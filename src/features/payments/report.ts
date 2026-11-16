@@ -29,6 +29,9 @@ export function buildFinancialReport(charges: ReportCharge[]) {
   };
 
   for (const charge of charges) {
+    if (!Number.isSafeInteger(charge.amountCents) || charge.amountCents < 0) {
+      throw new Error("Invalid charge amount.");
+    }
     if (charge.status === "CANCELLED" || charge.status === "REFUNDED") {
       continue;
     }
