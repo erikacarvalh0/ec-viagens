@@ -18,7 +18,7 @@ const tripFields = {
   startsAt: tripDate,
   endsAt: tripDate,
   locationName: z.string().trim().max(120),
-  mapUrl: z.string().trim(),
+  mapUrl: z.string().trim().max(2048, "O link do mapa deve ter no máximo 2048 caracteres."),
 };
 
 export const tripDraftSchema = z
