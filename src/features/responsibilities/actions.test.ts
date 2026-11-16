@@ -87,6 +87,20 @@ describe("trip-scoped responsibilities", () => {
     expect(mocks.upsert).not.toHaveBeenCalled();
   });
 
+  it("does not remove a title when the actor is not an admin", async () => {
+    mocks.requireTripAdmin.mockRejectedValueOnce(new Error("Forbidden"));
+    const result = await removeResponsibility("trip-a", "member-a", { error: "" }, "ORGANIZER");
+    expect(result.error).not.toBe("");
+    expect(mocks.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it("does not remove a title from another trip", async () => {
+    mocks.findFirst.mockResolvedValueOnce(null);
+    const result = await removeResponsibility("trip-a", "member-from-trip-b", { error: "" }, "ORGANIZER");
+    expect(result.error).not.toBe("");
+    expect(mocks.deleteMany).not.toHaveBeenCalled();
+  });
+
   it("removes only the selected member title", async () => {
     const result = await removeResponsibility(
       "trip-a",
