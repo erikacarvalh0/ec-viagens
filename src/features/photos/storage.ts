@@ -40,7 +40,9 @@ async function s3Request(method: Method, key: string, bytes?: Uint8Array, conten
     "aws4_request",
   );
   const signature = createHmac("sha256", signingKey).update(stringToSign).digest("hex");
-  const response = await fetch(`https://${host}${path}`, {
+  let response: Response;
+  try {
+    response = await fetch(`https://${host}${path}`, {
     method,
     headers: {
       Authorization: `AWS4-HMAC-SHA256 Credential=${accessKey}/${scope}, SignedHeaders=${signedHeaders}, Signature=${signature}`,
@@ -50,7 +52,11 @@ async function s3Request(method: Method, key: string, bytes?: Uint8Array, conten
     },
     ...(bytes ? { body: Buffer.from(bytes) } : {}),
     cache: "no-store",
-  });
+    signal: AbortSignal.timeout(15_000),
+    });
+  } catch {
+    throw new Error("S3 request failed.");
+  }
 
   if (!response.ok) throw new Error(`S3 returned HTTP ${response.status}.`);
   return response;
