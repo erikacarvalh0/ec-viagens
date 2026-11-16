@@ -1,21 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/session";
 
-export const profileSchema = z.object({
-  name: z.string().trim().min(2).max(100),
-  city: z.string().trim().max(100),
-  state: z.string().trim().max(80),
-  whatsapp: z.string().trim().refine((value) => !value || /^\d{10,15}$/.test(value), {
-    message: "Informe o WhatsApp com DDI e DDD, somente números.",
-  }),
-});
-
-export type ProfileDraft = z.infer<typeof profileSchema>;
+import { profileSchema, type ProfileDraft } from "./schema";
 
 export async function updateProfile(draft: ProfileDraft) {
   const result = profileSchema.safeParse(draft);

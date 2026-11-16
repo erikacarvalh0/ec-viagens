@@ -4,7 +4,8 @@ import { useState, useTransition } from "react";
 
 import { Button } from "@/design-system";
 
-import { type ProfileDraft, profileSchema, updateProfile } from "./profile";
+import { updateProfile } from "./profile";
+import { type ProfileDraft, profileSchema } from "./schema";
 
 export function ProfileForm({ initial }: { initial: ProfileDraft }) {
   const [values, setValues] = useState(initial);
