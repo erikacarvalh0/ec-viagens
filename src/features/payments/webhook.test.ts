@@ -62,6 +62,21 @@ describe("Asaas webhook reconciliation", () => {
     });
   });
 
+  it("preserves the original paidAt across later receipt events", async () => {
+    const original = new Date("2026-11-14");
+    mocks.findCurrent.mockResolvedValue({
+      id: "charge-a", asaasPaymentId: "pay-123", amountCents: 10010,
+      status: "PAID", paidAt: original,
+    });
+    expect(await reconcileAsaasEvent({
+      id: "evt-late-receipt", event: "PAYMENT_RECEIVED", payment,
+    })).toBe("processed");
+    expect(mocks.updateCharge).toHaveBeenCalledWith({
+      where: { id: "charge-a" },
+      data: expect.objectContaining({ status: "PAID", paidAt: original }),
+    });
+  });
+
   it("ignores unsupported events", async () => {
     const result = await reconcileAsaasEvent({
       id: "evt-2",

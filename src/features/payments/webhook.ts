@@ -103,9 +103,9 @@ export async function reconcileAsaasEvent(input: unknown) {
 
       const date = event.payment.paymentDate ?? event.payment.confirmedDate;
       const paidAt = status === "PAID"
-        ? date && !Number.isNaN(Date.parse(date))
+        ? current.paidAt ?? (date && !Number.isNaN(Date.parse(date))
           ? new Date(date)
-          : new Date()
+          : new Date())
         : status === "REFUNDED" || status === "CANCELLED"
           ? null
           : current.paidAt;

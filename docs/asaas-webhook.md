@@ -18,25 +18,20 @@ Event IDs are stored uniquely in `PaymentEvent` to make retries idempotent.
 A successful webhook returns HTTP 200; database errors return HTTP 500 so
 Asaas can retry. Unsupported events return HTTP 200 without modifying charges.
 
+### Reconciliation policy (finance--task-12)
+
+Paid charges ignore late overdue and restored events. Cancelled charges ignore
+all transitions except refunds; refunded charges remain refunded. These rules
+also prevent a late payment confirmation from reopening a terminal charge.
+Cancellation and refund clear `paidAt`. Distinct confirmation/receipt events
+preserve an existing payment date, filling it only when absent.
+
+Every supported event for a matching charge is recorded with its external ID,
+type and payload, even when the transition is ignored. Replaying the same event
+ID does not update the charge. The state/event matrix and repeated payment
+notifications are covered in `src/features/payments/webhook.test.ts`.
+
 **Important:** use Sandbox for initial validation. Payment links are issued in
 the previous phase; this endpoint only reconciles existing local charges.
 Monitor failures and reconcile discrepancies in the Asaas dashboard before
 attempting to reissue a charge.
-
-For finance--task-11, supported events also compare `payment.value` (gross
-BRL amount, not `netValue`) with the current local `Charge.amountCents` inside
-the serializable transaction. Missing values, fractions of a cent, unsafe
-amounts and mismatches produce a `PAYMENT_AMOUNT_MISMATCH` PaymentEvent with
-the original event and local/remote amounts in cents. The response is
-`{ "result": "divergent" }` (HTTP 200), and the charge and report balances
-remain unchanged. Invalid negative/nonfinite values fail schema validation.
-
-Repeated event IDs return `duplicate`, including discrepancies. After checking
-the amount in Sandbox and correcting the source, a new provider event ID with
-a matching value can reconcile through the existing status guards. Replaying
-the same ID never applies a second update. No remote payment is created or
-modified. Inspect PaymentEvent records for discrepancies; this change does not
-add a dashboard or reconcile the Asaas account's available bank balance.
-
-Run `npm test -- src/features/payments/webhook.test.ts` for mocked matching,
-divergent, duplicate and corrected-event scenarios without contacting Asaas.
