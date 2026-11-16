@@ -36,7 +36,7 @@ export const tripDraftSchema = z
       try {
         const url = new URL(value.mapUrl);
 
-        if (url.protocol !== "https:") {
+        if (url.protocol !== "https:" || url.username || url.password) {
           throw new Error("Insecure URL");
         }
       } catch {
