@@ -48,6 +48,7 @@ export async function sendPaymentReminderTemplate(input: ReminderTemplateInput) 
         },
       }),
       cache: "no-store",
+      signal: AbortSignal.timeout(10_000),
     },
   );
 
