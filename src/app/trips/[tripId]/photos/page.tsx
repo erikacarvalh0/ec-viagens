@@ -47,6 +47,7 @@ export default async function TripPhotosPage({
               style={{ maxWidth: "100%", height: "auto" }}
             />
             <p><a href={`/api/trips/${tripId}/photos/${photo.id}`} target="_blank" rel="noopener noreferrer">Ver foto maior</a></p>
+            <p><a href={`/api/trips/${tripId}/photos/${photo.id}?download=1`}>Baixar foto</a></p>
             {photo.caption && <p>{photo.caption}</p>}
             <p>Enviada por {photo.uploadedBy.name}</p>
             {(membership.role === "ADMIN" || photo.uploadedById === membership.userId) && (
