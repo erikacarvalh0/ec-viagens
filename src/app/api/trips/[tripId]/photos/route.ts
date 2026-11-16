@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
 
 import { requireTripMember } from "@/features/members/permissions";
-import { uploadPrivatePhoto } from "@/features/photos/storage";
+import { deletePrivatePhoto, uploadPrivatePhoto } from "@/features/photos/storage";
+import { optimizePhoto } from "@/features/photos/optimization";
 import { MAX_PHOTO_BYTES, validatePhotoUpload } from "@/features/photos/validation";
 import { prisma } from "@/lib/prisma";
 
@@ -45,20 +46,32 @@ export async function POST(request: Request, context: Context) {
 
   const rawCaption = form.get("caption");
   const caption = typeof rawCaption === "string" ? rawCaption.trim().slice(0, 200) : "";
-  const key = `trips/${tripId}/${randomUUID()}.${contentType === "image/png" ? "png" : "jpg"}`;
+  const photoId = randomUUID();
+  const key = `trips/${tripId}/${photoId}.jpg`;
+  const thumbnailKey = `trips/${tripId}/${photoId}-thumb.jpg`;
+  let uploadedOriginal = false;
+  let uploadedThumbnail = false;
 
   try {
-    await uploadPrivatePhoto(key, bytes, contentType);
+    const optimized = await optimizePhoto(bytes);
+    await uploadPrivatePhoto(key, optimized.original.bytes, optimized.original.contentType);
+    uploadedOriginal = true;
+    await uploadPrivatePhoto(thumbnailKey, optimized.thumbnail.bytes, optimized.thumbnail.contentType);
+    uploadedThumbnail = true;
     const photo = await prisma.photo.create({
       data: {
         tripId,
         uploadedById: member.userId,
         storageKey: key,
+        thumbnailKey,
         caption: caption || null,
       },
     });
     return Response.json({ id: photo.id }, { status: 201 });
   } catch {
-    return Response.json({ error: "Não foi possível salvar a foto." }, { status: 500 });
+    // Best-effort cleanup of objects uploaded before the database operation failed.
+    if (uploadedThumbnail) await deletePrivatePhoto(thumbnailKey).catch(() => undefined);
+    if (uploadedOriginal) await deletePrivatePhoto(key).catch(() => undefined);
+    return Response.json({ error: "Não foi possível processar ou salvar a foto." }, { status: 500 });
   }
 }
