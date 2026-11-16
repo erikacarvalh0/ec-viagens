@@ -8,6 +8,7 @@ import { signIn, signOut } from "@/lib/auth";
 import { hashPassword } from "@/lib/password";
 import { prisma } from "@/lib/prisma";
 
+import { requestEmailVerification } from "./email-verification";
 import { loginSchema, registrationSchema } from "./schemas";
 import { authCallbackPath } from "./redirects";
 
@@ -29,14 +30,16 @@ export async function register(
     return { error: "Verifique os dados. A senha deve ter pelo menos 12 caracteres." };
   }
 
+  let userId: string;
   try {
-    await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         name: result.data.name,
         email: result.data.email,
         passwordHash: await hashPassword(result.data.password),
       },
     });
+    userId = user.id;
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -47,6 +50,9 @@ export async function register(
 
     return { error: "Não foi possível criar a conta. Tente novamente." };
   }
+
+  // Delivery failure must not turn a successfully created account into a signup error.
+  await requestEmailVerification(userId).catch(() => undefined);
 
   const callbackUrl = authCallbackPath(String(formData.get("callbackUrl") ?? ""));
   const params = new URLSearchParams({ registered: "1" });

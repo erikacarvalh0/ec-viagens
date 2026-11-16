@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { EmailVerificationForm } from "@/features/auth/EmailVerificationForm";
 import { ProfileForm } from "@/features/profile/ProfileForm";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/session";
@@ -8,7 +9,7 @@ export default async function ProfilePage() {
   const userId = await requireUserId();
   const user = await prisma.user.findUniqueOrThrow({
     where: { id: userId },
-    select: { name: true, email: true, city: true, state: true, whatsapp: true },
+    select: { emailVerifiedAt: true, name: true, email: true, city: true, state: true, whatsapp: true },
   });
 
   return (
@@ -17,6 +18,7 @@ export default async function ProfilePage() {
       <p className="eyebrow">MINHA CONTA</p>
       <h1>Meu perfil</h1>
       <p>E-mail: {user.email}</p>
+      {user.emailVerifiedAt ? <p>E-mail confirmado</p> : <EmailVerificationForm />}
       <ProfileForm initial={{
         name: user.name,
         city: user.city ?? "",
