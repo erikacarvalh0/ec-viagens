@@ -39,4 +39,20 @@ describe("ride coordination self-filtering", () => {
     expect(groups.rideOffers).toEqual([]);
     expect(groups.rideSeekers).toEqual([]);
   });
+  it("hides van interest from members who have not opted in", () => {
+    const groups = getCoordinationGroups([
+      { id: "me", name: "Me", travel: travel({ interestedVan: false }) },
+      { id: "other", name: "Other", travel: travel({ interestedVan: true }) },
+    ], "me");
+    expect(groups.vanInterested).toEqual([]);
+  });
+
+  it("shows van coordination only to opted-in participants", () => {
+    const groups = getCoordinationGroups([
+      { id: "me", name: "Me", travel: travel({ interestedVan: true }) },
+      { id: "other", name: "Other", travel: travel({ interestedVan: true }) },
+      { id: "third", name: "Third", travel: travel({ interestedVan: false }) },
+    ], "me");
+    expect(groups.vanInterested.map((member) => member.id)).toEqual(["me", "other"]);
+  });
 });
