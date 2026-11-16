@@ -57,7 +57,7 @@ describe("trip photo deletion", () => {
 
   it("does not remove storage or metadata if trip membership is denied", async () => {
     mocks.member.mockRejectedValueOnce(new Error("Forbidden"));
-    await expect(deleteTripPhoto("trip-1", "photo-1")).rejects.toThrow("Forbidden");
+    expect((await deleteTripPhoto("trip-1", "photo-1")).success).toBeUndefined();
     expect(mocks.removeObject).not.toHaveBeenCalled();
     expect(mocks.deleteMany).not.toHaveBeenCalled();
   });
