@@ -50,3 +50,35 @@ describe("authentication validation", () => {
     ).toBe(false);
   });
 });
+
+describe.each([
+  ["login", loginSchema],
+  ["registration", registrationSchema],
+])("%s email length", (_name, schema) => {
+  // Keep each domain label within 63 characters while varying total length.
+  const domain = `${"b".repeat(63)}.${"c".repeat(63)}.${"d".repeat(57)}.com`;
+
+  it("accepts 254 characters after trimming and normalizes case", () => {
+    const email = `${"A".repeat(64)}@${domain}`;
+    expect(email).toHaveLength(254);
+
+    const result = schema.parse({
+      name: "Ana",
+      email: ` ${email} `,
+      password: "secure-password-123",
+    });
+
+    expect(result.email).toBe(email.toLowerCase());
+  });
+
+  it("rejects an otherwise valid email of 255 characters", () => {
+    const email = `${"a".repeat(64)}@${domain}x`;
+    expect(email).toHaveLength(255);
+
+    expect(schema.safeParse({
+      name: "Ana",
+      email,
+      password: "secure-password-123",
+    }).success).toBe(false);
+  });
+});
