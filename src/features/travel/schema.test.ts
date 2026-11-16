@@ -22,6 +22,38 @@ const valid = {
 };
 
 describe("travel details validation", () => {
+  describe.each([
+    ["member", travelDetailsSchema],
+    ["admin", adminTravelDetailsSchema],
+  ] as const)("%s WhatsApp validation", (_, schema) => {
+    it.each(["invalid", "123456789", "12345678901234"])(
+      "rejects malformed number %s",
+      (whatsapp) => {
+        const result = schema.safeParse({ ...valid, whatsapp });
+
+        expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.error.issues).toContainEqual(expect.objectContaining({
+            path: ["whatsapp"],
+            message: "Informe um WhatsApp com DDD.",
+          }));
+        }
+      },
+    );
+
+    it.each(["1133334444", "11999999999", "+55 (11) 99999-9999"])(
+      "accepts number %s",
+      (whatsapp) => {
+        expect(schema.safeParse({ ...valid, whatsapp }).success).toBe(true);
+      },
+    );
+  });
+
+  it.each(["", "   "])("keeps blank WhatsApp optional only for admins: %j", (whatsapp) => {
+    expect(adminTravelDetailsSchema.safeParse({ ...valid, whatsapp }).success).toBe(true);
+    expect(travelDetailsSchema.safeParse({ ...valid, whatsapp }).success).toBe(false);
+  });
+
   it("accepts a complete travel profile", () => {
     expect(travelDetailsSchema.safeParse(valid).success).toBe(true);
   });

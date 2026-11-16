@@ -97,4 +97,19 @@ describe("travel details actions", () => {
     expect(result.error).not.toBe("");
     expect(mocks.transaction).not.toHaveBeenCalled();
   });
+
+  it("rejects malformed admin WhatsApp without touching the database", async () => {
+    mocks.requireTripMember.mockResolvedValue({
+      id: "membership-a",
+      userId: "user-a",
+      role: "ADMIN",
+    });
+    const form = makeForm();
+    form.set("whatsapp", "123");
+
+    const result = await saveTravelDetails("trip-a", { error: "" }, form);
+
+    expect(result.error).toBe("Informe um WhatsApp com DDD.");
+    expect(mocks.transaction).not.toHaveBeenCalled();
+  });
 });
