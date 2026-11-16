@@ -27,7 +27,7 @@ describe("confirmPasswordReset", () => {
   data.set("token","a".repeat(64));
   data.set("password","a-secure-password");
   data.set("confirmPassword","a-secure-password");
-  complete.mockRejectedValue(new Error("Invalid or expired reset token."));
+  complete.mockImplementationOnce(async () => { throw new Error("Invalid or expired reset token."); });
   const result = await confirmPasswordReset({error:"",success:false},data);
   expect(result.error).not.toContain("a".repeat(64));
   expect(result.success).toBe(false);
