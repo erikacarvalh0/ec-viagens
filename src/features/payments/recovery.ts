@@ -34,6 +34,10 @@ export async function recoverCharge(
 
     const payment = await findAsaasPaymentByReference(charge.id);
 
+    if (payment && payment.externalReference !== charge.id) {
+      return { error: "A referência do pagamento no Asaas não corresponde à cobrança." };
+    }
+
     if (!payment || !payment.invoiceUrl) {
       return {
         error: "Nenhum pagamento correspondente foi encontrado no Asaas. Verifique no painel antes de emitir outra cobrança.",
