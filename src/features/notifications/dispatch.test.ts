@@ -107,6 +107,33 @@ describe("payment reminder dispatcher", () => {
     expect(mocks.send).not.toHaveBeenCalled();
   });
 
+  it("sends only once when two dispatch workers claim the same reminder", async () => {
+    let claimed = false;
+    mocks.updateMany.mockImplementation(async () => {
+      if (claimed) return { count: 0 };
+      claimed = true;
+      return { count: 1 };
+    });
+    const results = await Promise.all([
+      dispatchDuePaymentReminders(),
+      dispatchDuePaymentReminders(),
+    ]);
+    expect(results.map((result) => result.processed).sort()).toEqual([0, 1]);
+    expect(mocks.send).toHaveBeenCalledTimes(1);
+  });
+
+  it("never automatically retries an uncertain timeout on the next run", async () => {
+    mocks.send.mockRejectedValueOnce(new Error("provider timeout"));
+    expect(await dispatchDuePaymentReminders()).toEqual({ processed: 0 });
+    expect(mocks.update).toHaveBeenCalledWith({
+      where: { id: "notification-1" },
+      data: { status: "REVIEW_REQUIRED" },
+    });
+    mocks.findMany.mockResolvedValueOnce([]);
+    expect(await dispatchDuePaymentReminders()).toEqual({ processed: 0 });
+    expect(mocks.send).toHaveBeenCalledTimes(1);
+  });
+
   it("flags uncertain provider outcomes for review", async () => {
     mocks.send.mockRejectedValue(new Error("timeout"));
     await dispatchDuePaymentReminders();
