@@ -20,5 +20,14 @@ export function financialReportCsv(members: MemberExport[]): string {
   for (const member of members) {
     rows.push([cell(member.name), amount(member.expectedCents), amount(member.paidCents), amount(member.outstandingCents)].join(";"));
   }
+  const totals = members.reduce(
+    (sum, member) => ({
+      expectedCents: sum.expectedCents + member.expectedCents,
+      paidCents: sum.paidCents + member.paidCents,
+      outstandingCents: sum.outstandingCents + member.outstandingCents,
+    }),
+    { expectedCents: 0, paidCents: 0, outstandingCents: 0 },
+  );
+  rows.push(["TOTAL", amount(totals.expectedCents), amount(totals.paidCents), amount(totals.outstandingCents)].join(";"));
   return "\uFEFF" + rows.join("\r\n") + "\r\n";
 }
