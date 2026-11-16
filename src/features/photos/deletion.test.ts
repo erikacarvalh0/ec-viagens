@@ -55,6 +55,20 @@ describe("trip photo deletion", () => {
     expect(mocks.removeObject).not.toHaveBeenCalled();
   });
 
+  it("does not remove storage or metadata if trip membership is denied", async () => {
+    mocks.member.mockRejectedValueOnce(new Error("Forbidden"));
+    expect((await deleteTripPhoto("trip-1", "photo-1")).success).toBeUndefined();
+    expect(mocks.removeObject).not.toHaveBeenCalled();
+    expect(mocks.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it("does not delete metadata when storage deletion times out", async () => {
+    mocks.removeObject.mockRejectedValueOnce(new Error("Timeout"));
+    const result = await deleteTripPhoto("trip-1", "photo-1");
+    expect(result.success).toBeUndefined();
+    expect(mocks.deleteMany).not.toHaveBeenCalled();
+  });
+
   it("does not delete metadata if storage deletion fails", async () => {
     mocks.removeObject.mockRejectedValue(new Error("S3 error"));
     expect((await deleteTripPhoto("trip-1", "photo-1")).success).toBeUndefined();
