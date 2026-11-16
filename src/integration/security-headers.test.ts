@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import nextConfig from "../../../next.config";
+import nextConfig from "../../next.config";
 
 describe("application security response headers", () => {
  it("sets defensive headers on application routes", async () => {
