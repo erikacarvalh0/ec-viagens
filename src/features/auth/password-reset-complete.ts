@@ -21,7 +21,7 @@ export async function completePasswordReset(input: unknown): Promise<void> {
     if (claimed.count !== 1) throw new Error("Invalid or expired reset token.");
     await transaction.user.update({
       where: { id: stored.userId },
-      data: { passwordHash },
+      data: { passwordHash, sessionVersion: { increment: 1 } },
     });
   }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
 }
