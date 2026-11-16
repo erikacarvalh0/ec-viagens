@@ -43,6 +43,7 @@ model User {
   name        String
   email        String       @unique
   passwordHash String
+  sessionVersion Int @default(0)
   city        String?
   state       String?
   whatsapp    String?      @unique
