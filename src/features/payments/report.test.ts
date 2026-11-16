@@ -42,4 +42,29 @@ describe("trip financial report", () => {
     expect(report.outstandingCents).toBe(0);
     expect(report.byMember).toEqual({});
   });
+
+  it.each(["__proto__", "constructor", "toString"])(
+    "summarizes balances for member ID %s without inherited properties",
+    (memberId) => {
+      const report = buildFinancialReport([
+        { id: "a", memberId, amountCents: 10000, status: "PAID" },
+        { id: "b", memberId, amountCents: 2500, status: "OVERDUE" },
+        { id: "c", memberId: "m1", amountCents: 500, status: "PENDING" },
+      ]);
+
+      expect(Object.keys(report.byMember)).toEqual([memberId, "m1"]);
+      expect(report.byMember[memberId]).toEqual({
+        expectedCents: 12500,
+        paidCents: 10000,
+        outstandingCents: 2500,
+      });
+      expect(report.byMember.m1).toEqual({
+        expectedCents: 500,
+        paidCents: 0,
+        outstandingCents: 500,
+      });
+      expect(report.expectedCents).toBe(13000);
+      expect(buildFinancialReport([]).byMember[memberId]).toBeUndefined();
+    },
+  );
 });
