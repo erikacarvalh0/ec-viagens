@@ -110,6 +110,22 @@ describe("trip invitations", () => {
     });
   });
 
+  it("allows only one concurrent redemption of a single-use invitation", async () => {
+    let claimed = false;
+    mocks.updateMany.mockImplementation(async () => {
+      if (claimed) return { count: 0 };
+      claimed = true;
+      return { count: 1 };
+    });
+    const results = await Promise.allSettled([
+      acceptInvitation(validToken),
+      acceptInvitation(validToken),
+    ]);
+    expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
+    expect(mocks.upsert).toHaveBeenCalledTimes(1);
+  });
+
   it("rejects a token already claimed by another request", async () => {
     mocks.updateMany.mockResolvedValue({ count: 0 });
 
