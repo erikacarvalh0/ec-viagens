@@ -69,6 +69,22 @@ describe("trip photo deletion", () => {
     expect(mocks.deleteMany).not.toHaveBeenCalled();
   });
 
+  it("does not access storage or metadata when the photo is missing", async () => {
+    mocks.findFirst.mockResolvedValueOnce(null);
+    const result = await deleteTripPhoto("trip-1", "missing-photo");
+    expect(result.error).toBe("Foto não encontrada nesta viagem.");
+    expect(mocks.removeObject).not.toHaveBeenCalled();
+    expect(mocks.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it("does not report success if metadata was already deleted", async () => {
+    mocks.deleteMany.mockResolvedValueOnce({ count: 0 });
+    const result = await deleteTripPhoto("trip-1", "photo-1");
+    expect(result.error).toBe("A foto já foi removida.");
+    expect(result.success).toBeUndefined();
+    expect(mocks.revalidate).not.toHaveBeenCalled();
+  });
+
   it("does not delete metadata if storage deletion fails", async () => {
     mocks.removeObject.mockRejectedValue(new Error("S3 error"));
     expect((await deleteTripPhoto("trip-1", "photo-1")).success).toBeUndefined();
