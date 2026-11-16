@@ -1,4 +1,4 @@
-import { whatsappTemplateLanguage } from "./template-config";
+import { whatsappTemplateLanguage, whatsappTemplateName } from "./template-config";
 
 type ReminderTemplateInput = {
   to: string;
@@ -21,6 +21,8 @@ export async function sendPaymentReminderTemplate(input: ReminderTemplateInput) 
     throw new Error("Invalid WhatsApp API configuration.");
   }
 
+  const templateName = whatsappTemplateName(template);
+
   const response = await fetch(
     `https://graph.facebook.com/${version}/${phoneId}/messages`,
     {
@@ -34,7 +36,7 @@ export async function sendPaymentReminderTemplate(input: ReminderTemplateInput) 
         to: input.to,
         type: "template",
         template: {
-          name: template,
+          name: templateName,
           language: { code: language },
           components: [{
             type: "body",
