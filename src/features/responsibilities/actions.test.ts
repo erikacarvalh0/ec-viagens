@@ -49,6 +49,7 @@ describe("trip-scoped responsibilities", () => {
     expect(mocks.upsert).toHaveBeenCalledWith({
       where: {
         memberId_title: { memberId: "member-a", title: "ORGANIZER" },
+        member: { tripId: "trip-a" },
       },
       create: {
         memberId: "member-a",
