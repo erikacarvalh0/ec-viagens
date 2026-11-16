@@ -26,7 +26,33 @@ export async function POST(request: Request, context: Context) {
 
   let form: FormData;
   try {
-    form = await request.formData();
+    const maxBodyBytes = MAX_PHOTO_BYTES + 4096;
+    const reader = request.body?.getReader();
+    if (!reader) throw new Error("Missing upload body.");
+    const chunks: Uint8Array[] = [];
+    let totalBytes = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > maxBodyBytes) {
+        await reader.cancel();
+        return Response.json({ error: "Arquivo muito grande." }, { status: 413 });
+      }
+      chunks.push(value);
+    }
+    const bytes = new Uint8Array(totalBytes);
+    let offset = 0;
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    const boundedRequest = new Request(request.url, {
+      method: "POST",
+      headers: request.headers,
+      body: bytes,
+    });
+    form = await boundedRequest.formData();
   } catch {
     return Response.json({ error: "Formulário inválido." }, { status: 400 });
   }
