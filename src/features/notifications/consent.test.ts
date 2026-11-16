@@ -3,11 +3,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   userId: vi.fn(),
   update: vi.fn(),
+  updateMany: vi.fn(),
   revalidate: vi.fn(),
 }));
 
 vi.mock("@/lib/session", () => ({ requireUserId: mocks.userId }));
-vi.mock("@/lib/prisma", () => ({ prisma: { user: { update: mocks.update } } }));
+vi.mock("@/lib/prisma", () => ({ prisma: { user: { update: mocks.update }, notification: { updateMany: mocks.updateMany } } }));
 vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidate }));
 
 import { updateReminderConsent } from "./consent";
@@ -15,7 +16,8 @@ import { updateReminderConsent } from "./consent";
 describe("WhatsApp reminder consent", () => {
   beforeEach(() => {
     mocks.userId.mockResolvedValue("user-1");
-    mocks.update.mockResolvedValue({});
+    mocks.update.mockResolvedValue({ whatsapp: null });
+    mocks.updateMany.mockResolvedValue({ count: 0 });
   });
 
   it("records explicit opt-in for the authenticated user", async () => {
@@ -25,6 +27,7 @@ describe("WhatsApp reminder consent", () => {
     expect(mocks.update).toHaveBeenCalledWith({
       where: { id: "user-1" },
       data: { paymentReminderConsentAt: expect.any(Date) },
+      select: { whatsapp: true },
     });
   });
 
@@ -35,6 +38,7 @@ describe("WhatsApp reminder consent", () => {
     expect(mocks.update).toHaveBeenCalledWith({
       where: { id: "user-1" },
       data: { paymentReminderConsentAt: null },
+      select: { whatsapp: true },
     });
   });
 
