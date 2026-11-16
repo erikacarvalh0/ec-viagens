@@ -22,7 +22,10 @@ export const travelDetailsSchema = z
   .object({
     city: optionalText,
     state: z.string().trim().max(2),
-    whatsapp: z.string().trim().max(20),
+    whatsapp: z.string().trim().max(20).refine(
+      (value) => !value || /^\d{10,13}$/.test(value.replace(/\D/g, "")),
+      "Informe um WhatsApp com DDD.",
+    ),
     outboundAt: optionalTravelDate,
     outboundPeriod: optionalPeriod,
     outboundOrigin: optionalText,
@@ -63,14 +66,6 @@ export const travelDetailsSchema = z
         code: "custom",
         path: ["city"],
         message: "Informe cidade, estado e WhatsApp.",
-      });
-    }
-
-    if (!/^\d{10,13}$/.test(value.whatsapp.replace(/\D/g, ""))) {
-      context.addIssue({
-        code: "custom",
-        path: ["whatsapp"],
-        message: "Informe um WhatsApp com DDD.",
       });
     }
 
