@@ -31,6 +31,9 @@ export function financialReportCsv(members: MemberExport[]): string {
     }),
     { expectedCents: 0, paidCents: 0, outstandingCents: 0 },
   );
+  if (![totals.expectedCents, totals.paidCents, totals.outstandingCents].every((value) => Number.isSafeInteger(value) && value >= 0)) {
+    throw new Error("Invalid export amount.");
+  }
   rows.push(["TOTAL", amount(totals.expectedCents), amount(totals.paidCents), amount(totals.outstandingCents)].join(";"));
   return "\uFEFF" + rows.join("\r\n") + "\r\n";
 }
