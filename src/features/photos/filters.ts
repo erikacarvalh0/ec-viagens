@@ -13,7 +13,7 @@ export function buildPhotoFilter(tripId: string, filters: PhotoGalleryFilter) {
   return {
     tripId,
     ...(filters.uploaderId ? { uploadedById: filters.uploaderId } : {}),
-    ...(filters.captioned === "no" && !search ? { caption: null } : search || filters.captioned === "yes" ? { caption: {
+    ...(filters.captioned === "no" ? { caption: null } : search || filters.captioned === "yes" ? { caption: {
       ...(search ? { contains: search, mode: "insensitive" as const } : {}),
       ...(filters.captioned === "yes" ? { not: null } : {}),
     } } : {}),
