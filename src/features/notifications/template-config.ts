@@ -5,3 +5,10 @@ export function whatsappTemplateLanguage(value: string | undefined): string {
   }
   return value;
 }
+
+export function whatsappTemplateName(value: string): string {
+  if (!/^[a-z0-9_]{1,512}$/.test(value)) {
+    throw new Error("Invalid WhatsApp template name.");
+  }
+  return value;
+}
