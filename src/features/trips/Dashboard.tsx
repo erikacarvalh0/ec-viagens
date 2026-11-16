@@ -14,6 +14,7 @@ import { TripForm } from "./TripForm";
 import { TripOverview } from "./TripOverview";
 import type { Trip } from "./trip";
 import { filterTripsByArchive } from "./history";
+import { searchTrips } from "./search";
 
 type DashboardProps = {
   initialTrips: Trip[];
@@ -25,11 +26,12 @@ export function Dashboard({ initialTrips }: DashboardProps) {
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
+  const [search, setSearch] = useState("");
   const [trips, setTrips] = useState(initialTrips);
   const selectedTrip = trips.find((trip) => trip.id === selectedTripId);
   const showTrips = section === "overview" || section === "trips";
   // Keep all member trips in memory; archive status only changes the visible list.
-  const visibleTrips = filterTripsByArchive(trips, showArchived);
+  const visibleTrips = searchTrips(filterTripsByArchive(trips, showArchived), search);
 
   return (
     <AppShell currentSection={section} onNavigate={setSection}>
@@ -61,6 +63,10 @@ export function Dashboard({ initialTrips }: DashboardProps) {
             {showArchived ? "Ver viagens ativas" : "Histórico de viagens"}
           </Button>
         </div>
+        <label className="trip-search">
+          Buscar viagens
+          <input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Nome ou destino" aria-label="Buscar viagens por nome ou destino" />
+        </label>
         <TripOverview
           hydrated
           archived={showArchived}
