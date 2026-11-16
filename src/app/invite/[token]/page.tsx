@@ -41,7 +41,7 @@ export default async function InvitationPage({ params }: PageProps) {
               Entre na sua conta
             </Link>{" "}
             para aceitar o convite. Ainda não tem uma conta?{" "}
-            <Link href="/register">Cadastre-se</Link>.
+            <Link href={`/register?callbackUrl=${encodeURIComponent(`/invite/${token}`)}`}>Cadastre-se</Link>.
           </p>
         )}
       </Card>
