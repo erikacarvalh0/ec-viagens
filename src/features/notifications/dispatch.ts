@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 
 import { sendPaymentReminderTemplate } from "./whatsapp";
+import { markStaleProcessingForReview } from "./stale";
 
 export async function dispatchDuePaymentReminders() {
   if (process.env.WHATSAPP_REMINDERS_ENABLED !== "true") {
@@ -8,6 +9,7 @@ export async function dispatchDuePaymentReminders() {
   }
 
   const now = new Date();
+  await markStaleProcessingForReview(now);
   const due = await prisma.notification.findMany({
     where: {
       kind: "PAYMENT_REMINDER",
@@ -25,7 +27,7 @@ export async function dispatchDuePaymentReminders() {
     // claimed item: a timeout can occur after WhatsApp accepted the message.
     const claim = await prisma.notification.updateMany({
       where: { id: notification.id, status: "PENDING" },
-      data: { status: "PROCESSING" },
+      data: { status: "PROCESSING", processingStartedAt: new Date() },
     });
 
     if (claim.count !== 1) {

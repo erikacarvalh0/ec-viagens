@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Card } from "@/design-system";
+import { ReviewButton } from "@/features/notifications/ReviewButton";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/session";
 
@@ -15,6 +16,7 @@ const labels: Record<string, string> = {
   READ: "Lido",
   CANCELLED: "Cancelado",
   REVIEW_REQUIRED: "Requer revisão",
+  REVIEWED: "Revisado",
 };
 
 export default async function TripNotificationsPage({ params }: PageProps) {
@@ -77,7 +79,10 @@ export default async function TripNotificationsPage({ params }: PageProps) {
               </p>
             )}
             {notification.status === "REVIEW_REQUIRED" && (
-              <p>Confira a mensagem na Meta antes de tentar novo envio.</p>
+              <>
+                <p>Confira a mensagem na Meta antes de concluir a revisão.</p>
+                <ReviewButton tripId={tripId} notificationId={notification.id} />
+              </>
             )}
           </Card>
         ))}

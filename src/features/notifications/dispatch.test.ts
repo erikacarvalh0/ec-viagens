@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   update: vi.fn(),
   findUnique: vi.fn(),
   send: vi.fn(),
+  stale: vi.fn(),
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -21,6 +22,8 @@ vi.mock("@/lib/prisma", () => ({
 vi.mock("./whatsapp", () => ({
   sendPaymentReminderTemplate: mocks.send,
 }));
+
+vi.mock("./stale", () => ({ markStaleProcessingForReview: mocks.stale }));
 
 import { dispatchDuePaymentReminders } from "./dispatch";
 
@@ -65,7 +68,7 @@ describe("payment reminder dispatcher", () => {
     expect(await dispatchDuePaymentReminders()).toEqual({ processed: 1 });
     expect(mocks.updateMany).toHaveBeenCalledWith({
       where: { id: "notification-1", status: "PENDING" },
-      data: { status: "PROCESSING" },
+      data: { status: "PROCESSING", processingStartedAt: expect.any(Date) },
     });
     expect(mocks.send).toHaveBeenCalledOnce();
     expect(mocks.update).toHaveBeenCalledWith({
