@@ -4,6 +4,7 @@ import { Card } from "@/design-system";
 import { requireTripMember } from "@/features/members/permissions";
 import { formatBRL } from "@/features/payments/schema";
 import { buildTripOverview } from "@/features/trips/overview";
+import { ArchiveTripButton } from "@/features/trips/ArchiveTripButton";
 import { prisma } from "@/lib/prisma";
 
 type PageProps = { params: Promise<{ tripId: string }> };
@@ -26,6 +27,8 @@ export default async function TripOverviewPage({ params }: PageProps) {
       <Link href="/dashboard">← Voltar às viagens</Link>
       <p className="eyebrow">VISÃO GERAL</p>
       <h1>{membership.trip.name}</h1>
+      {membership.trip.archivedAt && <p>Esta viagem está arquivada. Os dados continuam disponíveis.</p>}
+      {isAdmin && <ArchiveTripButton tripId={tripId} archived={Boolean(membership.trip.archivedAt)} />}
       <p>{isAdmin ? "Resumo da viagem" : "Resumo da viagem e dos seus pagamentos"}</p>
       <section className="payment-plans" aria-label="Indicadores da viagem">
         <Card padding="lg">
