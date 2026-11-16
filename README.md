@@ -21,6 +21,7 @@ Generate a local secret with `openssl rand -base64 32`. Never commit secrets.
 ## Available functionality
 
 - Email/password registration, login, authenticated sessions and profile editing.
+- Signup email verification with single-use links and authenticated resend.
 - Member-only trips, admin editing, safe empty-trip deletion, archive/restore.
 - Active and archived trip history; membership and historical access are retained.
 - Trip search and departure-date sorting.
@@ -54,7 +55,7 @@ necessary before production.
 
 ## Production readiness backlog
 
-- Password reset, email verification and rate limiting.
+- Public password reset requests and broader rate limiting.
 - Database-backed integration tests and browser E2E coverage.
 - Security, privacy/LGPD and authorization audit.
 - Observability, production deployment and operations documentation.
