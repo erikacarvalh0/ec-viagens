@@ -22,3 +22,21 @@ Asaas can retry. Unsupported events return HTTP 200 without modifying charges.
 the previous phase; this endpoint only reconciles existing local charges.
 Monitor failures and reconcile discrepancies in the Asaas dashboard before
 attempting to reissue a charge.
+
+For finance--task-11, supported events also compare `payment.value` (gross
+BRL amount, not `netValue`) with the current local `Charge.amountCents` inside
+the serializable transaction. Missing values, fractions of a cent, unsafe
+amounts and mismatches produce a `PAYMENT_AMOUNT_MISMATCH` PaymentEvent with
+the original event and local/remote amounts in cents. The response is
+`{ "result": "divergent" }` (HTTP 200), and the charge and report balances
+remain unchanged. Invalid negative/nonfinite values fail schema validation.
+
+Repeated event IDs return `duplicate`, including discrepancies. After checking
+the amount in Sandbox and correcting the source, a new provider event ID with
+a matching value can reconcile through the existing status guards. Replaying
+the same ID never applies a second update. No remote payment is created or
+modified. Inspect PaymentEvent records for discrepancies; this change does not
+add a dashboard or reconcile the Asaas account's available bank balance.
+
+Run `npm test -- src/features/payments/webhook.test.ts` for mocked matching,
+divergent, duplicate and corrected-event scenarios without contacting Asaas.
