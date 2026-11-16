@@ -1,3 +1,5 @@
+import { whatsappTemplateLanguage } from "./template-config";
+
 type ReminderTemplateInput = {
   to: string;
   name: string;
@@ -9,6 +11,7 @@ export async function sendPaymentReminderTemplate(input: ReminderTemplateInput) 
   const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID;
   const template = process.env.WHATSAPP_PAYMENT_TEMPLATE;
   const version = process.env.WHATSAPP_GRAPH_VERSION ?? "v23.0";
+  const language = whatsappTemplateLanguage(process.env.WHATSAPP_TEMPLATE_LANGUAGE);
 
   if (!token || !phoneId || !template) {
     throw new Error("WhatsApp Cloud API is not configured.");
@@ -32,7 +35,7 @@ export async function sendPaymentReminderTemplate(input: ReminderTemplateInput) 
         type: "template",
         template: {
           name: template,
-          language: { code: "pt_BR" },
+          language: { code: language },
           components: [{
             type: "body",
             parameters: [
