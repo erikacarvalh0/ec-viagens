@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
- userId: vi.fn(), update: vi.fn(), updateMany: vi.fn(), revalidate: vi.fn(),
+ userId: vi.fn(), update: vi.fn(), updateMany: vi.fn(), findMany: vi.fn(), revalidate: vi.fn(),
 }));
 vi.mock("@/lib/session", () => ({requireUserId:mocks.userId}));
 vi.mock("@/lib/prisma", () => ({prisma:{
- user:{update:mocks.update},notification:{updateMany:mocks.updateMany},
+ user:{update:mocks.update},notification:{updateMany:mocks.updateMany},charge:{findMany:mocks.findMany},
 }}));
 vi.mock("next/cache", () => ({revalidatePath:mocks.revalidate}));
 import { updateReminderConsent } from "./consent";
@@ -16,13 +16,14 @@ describe("revoking WhatsApp reminder consent", () => {
   mocks.userId.mockResolvedValue("user-1");
   mocks.update.mockResolvedValue({});
   mocks.updateMany.mockResolvedValue({count:2});
+  mocks.findMany.mockResolvedValue([{id:"charge-1"}]);
  });
  it("cancels queued reminders for the authenticated user's WhatsApp number", async () => {
   mocks.update.mockResolvedValue({whatsapp:"5511999999999"});
   const result = await updateReminderConsent(false);
   expect(result.success).toBe(true);
   expect(mocks.updateMany).toHaveBeenCalledWith({
-   where:{kind:"PAYMENT_REMINDER",status:"PENDING",recipientWhatsapp:"5511999999999"},
+   where:{kind:"PAYMENT_REMINDER",status:"PENDING",recipientWhatsapp:"5511999999999",referenceId:{in:["charge-1"]}},
    data:{status:"CANCELLED"},
   });
  });
