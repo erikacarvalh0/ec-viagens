@@ -11,5 +11,12 @@ export async function markStaleProcessingForReview(now = new Date()) {
     data: { status: "REVIEW_REQUIRED" },
   });
 
+  if (result.count > 0) {
+    console.warn(JSON.stringify({
+      event: "notifications.stale_processing_review_required",
+      count: result.count,
+    }));
+  }
+
   return result.count;
 }
