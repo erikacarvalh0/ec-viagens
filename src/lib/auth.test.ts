@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { describe, expect, it, vi } from "vitest";
 
@@ -13,7 +13,7 @@ vi.mock("@/lib/prisma", () => ({ prisma: { user: { findUnique: vi.fn() } } }));
 import "./auth";
 
 const authorize = vi.mocked(Credentials).mock.calls[0][0].authorize!;
-const jwtCallback = vi.mocked(NextAuth).mock.calls[0][0].callbacks!.jwt!;
+const jwtCallback = (vi.mocked(NextAuth).mock.calls[0][0] as NextAuthConfig).callbacks!.jwt!;
 const request = new Request("https://example.com/api/auth/callback/credentials");
 
 describe("credentials input bounds", () => {
