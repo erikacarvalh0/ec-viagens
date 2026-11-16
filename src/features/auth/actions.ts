@@ -9,6 +9,7 @@ import { hashPassword } from "@/lib/password";
 import { prisma } from "@/lib/prisma";
 
 import { loginSchema, registrationSchema } from "./schemas";
+import { authCallbackPath } from "./redirects";
 
 export type AuthActionState = {
   error: string;
@@ -47,7 +48,10 @@ export async function register(
     return { error: "Não foi possível criar a conta. Tente novamente." };
   }
 
-  redirect("/login?registered=1");
+  const callbackUrl = authCallbackPath(String(formData.get("callbackUrl") ?? ""));
+  const params = new URLSearchParams({ registered: "1" });
+  if (callbackUrl !== "/dashboard") params.set("callbackUrl", callbackUrl);
+  redirect(`/login?${params.toString()}`);
 }
 
 export async function login(
@@ -64,9 +68,7 @@ export async function login(
   }
 
   const callbackUrl = String(formData.get("callbackUrl") ?? "");
-  const redirectTo = /^\/invite\/[a-f0-9]{64}$/.test(callbackUrl)
-    ? callbackUrl
-    : "/dashboard";
+  const redirectTo = authCallbackPath(callbackUrl);
 
   try {
     await signIn("credentials", {

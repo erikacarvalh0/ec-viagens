@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { Button, Card, Input } from "@/design-system";
 
 import { login, register } from "./actions";
+import { authCallbackPath, authPageHref } from "./redirects";
 
 type AuthFormProps = {
   mode: "login" | "register";
@@ -15,6 +16,7 @@ type AuthFormProps = {
 export function AuthForm({ mode }: AuthFormProps) {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "";
+  const safeCallbackUrl = authCallbackPath(callbackUrl);
   const isRegistration = mode === "register";
   const [state, action, pending] = useActionState(
     isRegistration ? register : login,
@@ -54,9 +56,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           type="password"
         />
 
-        {!isRegistration && (
-          <input name="callbackUrl" type="hidden" value={callbackUrl} />
-        )}
+        <input name="callbackUrl" type="hidden" value={safeCallbackUrl} />
 
         {state.error && <p role="alert">{state.error}</p>}
 
@@ -67,7 +67,7 @@ export function AuthForm({ mode }: AuthFormProps) {
 
       <p>
         {isRegistration ? "Já tem uma conta?" : "Ainda não tem uma conta?"}{" "}
-        <Link href={isRegistration ? "/login" : "/register"}>
+        <Link href={authPageHref(isRegistration ? "/login" : "/register", callbackUrl)}>
           {isRegistration ? "Entrar" : "Cadastrar"}
         </Link>
       </p>
