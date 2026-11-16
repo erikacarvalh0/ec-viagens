@@ -57,7 +57,7 @@ describe("invitation renewal", () => {
 
   it("does not renew an invitation that has not expired", async () => {
     mocks.findFirst.mockResolvedValue({
-      id: "invite-a", status: "PENDING", expiresAt: new Date(Date.now() + 60_000),
+      id: "invite-a", whatsapp: "", status: "PENDING", expiresAt: new Date(Date.now() + 60_000),
     });
     await expect(renewInvitation("trip-a", "invite-a")).rejects.toThrow("expired invitation");
     expect(mocks.create).not.toHaveBeenCalled();
