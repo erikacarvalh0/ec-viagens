@@ -1,0 +1,3 @@
+# Password reset request orchestration
+
+The internal `requestPasswordReset` service validates and normalizes an email, looks up an existing account, persists a hashed single-use token and passes the raw token to an injected delivery function. Unknown accounts are silently ignored by the service; the eventual public endpoint must return the same response regardless of account existence. **This is not a public endpoint and does not send email yet.** Before exposing it, implement a real email delivery adapter, IP/account rate limits, abuse controls, failure handling, and a privacy-safe public response. Do not log raw tokens.
