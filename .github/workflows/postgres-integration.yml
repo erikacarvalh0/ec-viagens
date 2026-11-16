@@ -39,4 +39,4 @@ jobs:
       - name: Synchronize disposable test database
         run: npx prisma db push --skip-generate
       - name: PostgreSQL integration tests
-        run: npx vitest run src/integration/postgres.test.ts
+        run: npx vitest run src/integration/postgres.test.ts src/integration/trip-membership.test.ts
