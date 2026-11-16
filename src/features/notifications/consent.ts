@@ -12,10 +12,21 @@ export async function updateReminderConsent(consent: boolean) {
 
   try {
     const userId = await requireUserId();
-    await prisma.user.update({
+    const user = await prisma.user.update({
       where: { id: userId },
       data: { paymentReminderConsentAt: consent ? new Date() : null },
+      select: { whatsapp: true },
     });
+    if (!consent && user.whatsapp) {
+      await prisma.notification.updateMany({
+        where: {
+          kind: "PAYMENT_REMINDER",
+          status: "PENDING",
+          recipientWhatsapp: user.whatsapp,
+        },
+        data: { status: "CANCELLED" },
+      });
+    }
     revalidatePath("/settings/notifications");
     return { error: "", success: true };
   } catch {
