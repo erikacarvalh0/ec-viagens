@@ -45,6 +45,7 @@ export async function assignResponsibility(
     await prisma.memberTitle.upsert({
       where: {
         memberId_title: { memberId, title: parsed.data.title },
+        member: { tripId },
       },
       create: {
         memberId,
