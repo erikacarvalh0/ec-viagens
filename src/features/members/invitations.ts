@@ -60,6 +60,16 @@ export async function acceptInvitation(token: string) {
   }
 
   await prisma.$transaction(async (transaction) => {
+    // An invitation may be read while a trip is still active, then archived
+    // before redemption. Check again within the transaction.
+    const trip = await transaction.trip.findUnique({
+      where: { id: invitation.tripId },
+      select: { archivedAt: true },
+    });
+    if (!trip || trip.archivedAt) {
+      throw new Error("Archived trips cannot accept new invitations.");
+    }
+
     const claimed = await transaction.invitation.updateMany({
       where: {
         id: invitation.id,
