@@ -49,6 +49,7 @@ export default async function TripOverviewPage({ params }: PageProps) {
       </section>
       <nav aria-label="Áreas da viagem">
         <p><Link href={`/trips/${tripId}/travel`}>Transporte e caronas</Link></p>
+        {isAdmin && <p><Link href={`/trips/${tripId}/edit`}>Editar dados da viagem</Link></p>}
         {isAdmin && <p><Link href={`/trips/${tripId}/payments/report`}>Relatório financeiro</Link></p>}
       </nav>
     </main>
