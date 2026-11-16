@@ -13,7 +13,7 @@ function hashToken(token: string): string {
 
 export async function createInvitation(tripId: string) {
   const membership = await requireTripAdmin(tripId);
-  if (membership.trip.archivedAt) {
+  if (membership.trip?.archivedAt) {
     throw new Error("Archived trips cannot accept new invitations.");
   }
 
@@ -55,7 +55,7 @@ export async function acceptInvitation(token: string) {
     throw new Error("This invitation is invalid or expired.");
   }
 
-  if (invitation.trip.archivedAt) {
+  if (invitation.trip?.archivedAt) {
     throw new Error("Archived trips cannot accept new invitations.");
   }
 
