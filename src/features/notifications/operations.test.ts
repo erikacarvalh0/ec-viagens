@@ -34,7 +34,30 @@ describe("notification review", () => {
       error: "", success: true,
     });
     expect(mocks.updateMany).toHaveBeenCalledWith({
-      where: { id: "notification-1", status: "REVIEW_REQUIRED" },
+      where: {
+        id: "notification-1",
+        kind: "PAYMENT_REMINDER",
+        referenceId: { in: ["charge-1"] },
+        status: "REVIEW_REQUIRED",
+      },
+      data: { status: "REVIEWED" },
+    });
+  });
+
+  it("does not mark reviewed when a concurrent update invalidates the claim", async () => {
+    mocks.updateMany.mockResolvedValueOnce({ count: 0 });
+    const result = await resolveNotificationReview("trip-1", "notification-1");
+    expect(result.success).not.toBe(true);
+    expect(mocks.revalidate).not.toHaveBeenCalled();
+  });
+
+  it("restricts the final update to charges in the authorized trip", async () => {
+    mocks.charges.mockResolvedValueOnce([{ id: "charge-from-trip-1" }]);
+    await resolveNotificationReview("trip-1", "notification-1");
+    expect(mocks.updateMany).toHaveBeenCalledWith({
+      where: expect.objectContaining({
+        referenceId: { in: ["charge-from-trip-1"] },
+      }),
       data: { status: "REVIEWED" },
     });
   });
