@@ -1,5 +1,3 @@
-import "server-only";
-
 const PROVIDER_URL = "https://api.resend.com/emails";
 
 export async function sendPasswordResetEmail(email: string, token: string): Promise<void> {
