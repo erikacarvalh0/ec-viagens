@@ -9,14 +9,14 @@ import { setTripArchived } from "./archiving";
 
 describe("trip archiving", () => {
   beforeEach(() => {
-    mocks.admin.mockResolvedValue({ role: "ADMIN" });
+    mocks.admin.mockResolvedValue({ role: "ADMIN", userId: "admin-1" });
     mocks.updateMany.mockResolvedValue({ count: 1 });
   });
 
   it("archives a trip without deleting data", async () => {
     await expect(setTripArchived("trip-1", true)).resolves.toEqual({ success: true });
     expect(mocks.updateMany).toHaveBeenCalledWith({
-      where: { id: "trip-1" },
+      where: { id: "trip-1", memberships: { some: { userId: "admin-1", role: "ADMIN" } } },
       data: { archivedAt: expect.any(Date) },
     });
     expect(mocks.revalidate).toHaveBeenCalledWith("/dashboard");
@@ -25,7 +25,7 @@ describe("trip archiving", () => {
   it("restores an archived trip", async () => {
     await setTripArchived("trip-1", false);
     expect(mocks.updateMany).toHaveBeenCalledWith({
-      where: { id: "trip-1" },
+      where: { id: "trip-1", memberships: { some: { userId: "admin-1", role: "ADMIN" } } },
       data: { archivedAt: null },
     });
   });
@@ -34,6 +34,14 @@ describe("trip archiving", () => {
     mocks.admin.mockRejectedValue(new Error("Forbidden"));
     await expect(setTripArchived("trip-1", true)).rejects.toThrow("Forbidden");
     expect(mocks.updateMany).not.toHaveBeenCalled();
+  });
+
+  it("rejects a mutation if admin rights were revoked after the initial check", async () => {
+    mocks.updateMany.mockResolvedValue({ count: 0 });
+    await expect(setTripArchived("trip-1", true)).rejects.toThrow("Trip not found");
+    expect(mocks.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: "trip-1", memberships: { some: { userId: "admin-1", role: "ADMIN" } } },
+    }));
   });
 
   it("rejects missing trips", async () => {
