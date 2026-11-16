@@ -34,7 +34,7 @@ export function TripCard({ trip, onOpen }: TripCardProps) {
         </p>
 
         <div className="trip-card__footer">
-          <span>Planejamento</span>
+          <span>{trip.archivedAt ? "Arquivada · Histórico" : "Planejamento"}</span>
 
           <Button
             aria-label={`Ver detalhes de ${trip.name}`}
