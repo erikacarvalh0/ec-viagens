@@ -22,7 +22,9 @@ export async function GET(
   if (!photo) return new Response("Not found", { status: 404 });
 
   try {
-    const isThumbnail = new URL(request.url).searchParams.get("size") === "thumb";
+    const searchParams = new URL(request.url).searchParams;
+    const isDownload = searchParams.get("download") === "1";
+    const isThumbnail = !isDownload && searchParams.get("size") === "thumb";
     const key = isThumbnail && photo.thumbnailKey ? photo.thumbnailKey : photo.storageKey;
     const response = await downloadPrivatePhoto(key);
     const bytes = await response.arrayBuffer();
@@ -31,6 +33,9 @@ export async function GET(
         "Content-Type": key.endsWith(".png") ? "image/png" : "image/jpeg",
         "Cache-Control": "private, no-store",
         "X-Content-Type-Options": "nosniff",
+        ...(isDownload ? {
+          "Content-Disposition": `attachment; filename="trip-photo-${photoId}.${key.endsWith(".png") ? "png" : "jpg"}"`,
+        } : {}),
       },
     });
   } catch {
