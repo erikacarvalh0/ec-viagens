@@ -38,3 +38,64 @@ describe("travel calendar dates", () => {
     expect(travelDetailsSchema.safeParse({ ...details, returnAt: "tomorrow" }).success).toBe(false);
   });
 });
+
+describe.each([
+  ["member", travelDetailsSchema],
+  ["admin", adminTravelDetailsSchema],
+] as const)("%s same-day travel periods", (_, schema) => {
+  it.each([
+    ["AFTERNOON", "MORNING"],
+    ["EVENING", "MORNING"],
+    ["EVENING", "AFTERNOON"],
+  ])("rejects departure in %s followed by an earlier return in %s", (outboundPeriod, returnPeriod) => {
+    const result = schema.safeParse({
+      ...details,
+      returnAt: details.outboundAt,
+      outboundPeriod,
+      returnPeriod,
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues).toContainEqual(expect.objectContaining({
+        path: ["returnAt"],
+        message: "A volta não pode ser anterior à ida.",
+      }));
+    }
+  });
+
+  it.each([
+    ["MORNING", "MORNING"],
+    ["MORNING", "AFTERNOON"],
+    ["MORNING", "EVENING"],
+    ["AFTERNOON", "AFTERNOON"],
+    ["AFTERNOON", "EVENING"],
+    ["EVENING", "EVENING"],
+  ])("accepts departure in %s and return in %s", (outboundPeriod, returnPeriod) => {
+    expect(schema.safeParse({
+      ...details,
+      returnAt: details.outboundAt,
+      outboundPeriod,
+      returnPeriod,
+    }).success).toBe(true);
+  });
+
+  it("allows an earlier return period on a later date", () => {
+    expect(schema.safeParse({
+      ...details,
+      outboundPeriod: "EVENING",
+      returnPeriod: "MORNING",
+    }).success).toBe(true);
+  });
+});
+
+it("allows admins to leave same-day periods unspecified", () => {
+  for (const [outboundPeriod, returnPeriod] of [["", ""], ["EVENING", ""], ["", "MORNING"]]) {
+    expect(adminTravelDetailsSchema.safeParse({
+      ...details,
+      returnAt: details.outboundAt,
+      outboundPeriod,
+      returnPeriod,
+    }).success).toBe(true);
+  }
+});

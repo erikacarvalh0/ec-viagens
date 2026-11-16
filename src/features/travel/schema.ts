@@ -38,7 +38,11 @@ export const travelDetailsSchema = z
     rideReturn: z.boolean(),
   })
   .superRefine((value, context) => {
-    if (value.returnAt && value.outboundAt && value.returnAt < value.outboundAt) {
+    if (value.returnAt && value.outboundAt && (
+      value.returnAt < value.outboundAt ||
+      (value.returnAt === value.outboundAt && value.outboundPeriod && value.returnPeriod &&
+        period.options.indexOf(value.returnPeriod) < period.options.indexOf(value.outboundPeriod))
+    )) {
       context.addIssue({
         code: "custom",
         path: ["returnAt"],
@@ -84,7 +88,11 @@ export type TravelDetails = z.infer<typeof travelDetailsSchema>;
 export const adminTravelDetailsSchema = z
   .object(travelDetailsSchema._def.schema.shape)
   .superRefine((value, context) => {
-    if (value.returnAt && value.outboundAt && value.returnAt < value.outboundAt) {
+    if (value.returnAt && value.outboundAt && (
+      value.returnAt < value.outboundAt ||
+      (value.returnAt === value.outboundAt && value.outboundPeriod && value.returnPeriod &&
+        period.options.indexOf(value.returnPeriod) < period.options.indexOf(value.outboundPeriod))
+    )) {
       context.addIssue({
         code: "custom",
         path: ["returnAt"],
