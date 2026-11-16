@@ -7,7 +7,10 @@ import { requireTripAdmin } from "./permissions";
 const LIFETIME_MS = 7 * 24 * 60 * 60 * 1000;
 
 export async function renewInvitation(tripId: string, invitationId: string): Promise<string> {
-  await requireTripAdmin(tripId);
+  const membership = await requireTripAdmin(tripId);
+  if (membership.trip?.archivedAt) {
+    throw new Error("Archived trips cannot accept new invitations.");
+  }
   const now = new Date();
   return prisma.$transaction(async (transaction) => {
     const invitation = await transaction.invitation.findFirst({
