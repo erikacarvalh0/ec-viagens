@@ -1,9 +1,10 @@
 export function whatsappTemplateLanguage(value: string | undefined): string {
-  if (value === undefined || value === "") return "pt_BR";
-  if (!/^[a-z]{2}_[A-Z]{2}$/.test(value)) {
+  const normalized = value?.trim();
+  if (!normalized) return "pt_BR";
+  if (!/^[a-z]{2}_[A-Z]{2}$/.test(normalized)) {
     throw new Error("Invalid WhatsApp template language.");
   }
-  return value;
+  return normalized;
 }
 
 export function whatsappTemplateName(value: string): string {
