@@ -68,9 +68,7 @@ export async function login(
   }
 
   const callbackUrl = String(formData.get("callbackUrl") ?? "");
-  const redirectTo = /^\/invite\/[a-f0-9]{64}$/.test(callbackUrl)
-    ? callbackUrl
-    : "/dashboard";
+  const redirectTo = authCallbackPath(callbackUrl);
 
   try {
     await signIn("credentials", {
