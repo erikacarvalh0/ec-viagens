@@ -34,6 +34,8 @@ export function getCoordinationGroups<T extends CoordinationMember>(
     uberSharing: current?.travel?.shareUber
       ? members.filter((member) => member.travel?.shareUber)
       : [],
-    vanInterested: members.filter((member) => member.travel?.interestedVan),
+    vanInterested: current?.travel?.interestedVan
+      ? members.filter((member) => member.travel?.interestedVan)
+      : [],
   };
 }
