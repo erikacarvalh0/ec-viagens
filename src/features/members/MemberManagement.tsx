@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { Button, Card } from "@/design-system";
 import { ResponsibilityControls } from "@/features/responsibilities/ResponsibilityControls";
+import { InvitationList } from "./InvitationList";
 import { responsibilityLabels } from "@/features/responsibilities/schema";
 
 import {
@@ -27,6 +28,7 @@ type MemberManagementProps = {
   tripId: string;
   tripName: string;
   isAdmin: boolean;
+  invitations: Array<{ id: string; status: "PENDING" | "ACCEPTED" | "EXPIRED" | "REVOKED"; expiresAt: string; createdAt: string }>;
   members: Member[];
 };
 
@@ -97,6 +99,7 @@ export function MemberManagement({
   tripId,
   tripName,
   isAdmin,
+  invitations,
   members,
 }: MemberManagementProps) {
   return (
@@ -111,6 +114,7 @@ export function MemberManagement({
       <Link href={`/trips/${tripId}/travel`}>Informações de viagem e caronas</Link>
 
       {isAdmin && <InvitationControl tripId={tripId} />}
+      {isAdmin && <InvitationList tripId={tripId} invitations={invitations} />}
 
       <Card padding="lg">
         <h2>Grupo da viagem</h2>

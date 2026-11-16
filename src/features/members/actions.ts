@@ -28,6 +28,7 @@ export async function generateInvitation(
   try {
     const token = await createInvitation(tripId);
     const invitationUrl = new URL(`/invite/${token}`, baseUrl).toString();
+    revalidatePath(`/trips/${tripId}/members`);
 
     return { error: "", invitationUrl };
   } catch {

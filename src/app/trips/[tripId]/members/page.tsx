@@ -27,9 +27,23 @@ export default async function TripMembersPage({ params }: PageProps) {
     orderBy: { user: { name: "asc" } },
   });
 
+  const invitations = membership.role === "ADMIN"
+    ? await prisma.invitation.findMany({
+        where: { tripId },
+        select: { id: true, status: true, expiresAt: true, createdAt: true },
+        orderBy: { createdAt: "desc" },
+      })
+    : [];
+
   return (
     <MemberManagement
       isAdmin={membership.role === "ADMIN"}
+      invitations={invitations.map((invitation) => ({
+        id: invitation.id,
+        status: invitation.status,
+        expiresAt: invitation.expiresAt.toISOString(),
+        createdAt: invitation.createdAt.toISOString(),
+      }))}
       members={members.map((member) => ({
         id: member.id,
         name: member.user.name,
