@@ -13,6 +13,7 @@ import { TripDetails } from "./TripDetails";
 import { TripForm } from "./TripForm";
 import { TripOverview } from "./TripOverview";
 import type { Trip } from "./trip";
+import { filterTripsByArchive } from "./history";
 
 type DashboardProps = {
   initialTrips: Trip[];
@@ -28,7 +29,7 @@ export function Dashboard({ initialTrips }: DashboardProps) {
   const selectedTrip = trips.find((trip) => trip.id === selectedTripId);
   const showTrips = section === "overview" || section === "trips";
   // Keep all member trips in memory; archive status only changes the visible list.
-  const visibleTrips = trips.filter((trip) => Boolean(trip.archivedAt) === showArchived);
+  const visibleTrips = filterTripsByArchive(trips, showArchived);
 
   return (
     <AppShell currentSection={section} onNavigate={setSection}>
@@ -62,6 +63,7 @@ export function Dashboard({ initialTrips }: DashboardProps) {
         </div>
         <TripOverview
           hydrated
+          archived={showArchived}
           onCreate={() => setIsFormOpen(true)}
           onOpenTrip={(id) => {
             setSelectedTripId(id);
