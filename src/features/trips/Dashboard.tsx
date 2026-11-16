@@ -15,6 +15,7 @@ import { TripOverview } from "./TripOverview";
 import type { Trip } from "./trip";
 import { filterTripsByArchive } from "./history";
 import { searchTrips } from "./search";
+import { sortTrips, type TripSort } from "./sort";
 
 type DashboardProps = {
   initialTrips: Trip[];
@@ -27,11 +28,12 @@ export function Dashboard({ initialTrips }: DashboardProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
   const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<TripSort>("date-asc");
   const [trips, setTrips] = useState(initialTrips);
   const selectedTrip = trips.find((trip) => trip.id === selectedTripId);
   const showTrips = section === "overview" || section === "trips";
   // Keep all member trips in memory; archive status only changes the visible list.
-  const visibleTrips = searchTrips(filterTripsByArchive(trips, showArchived), search);
+  const visibleTrips = sortTrips(searchTrips(filterTripsByArchive(trips, showArchived), search), sort);
 
   return (
     <AppShell currentSection={section} onNavigate={setSection}>
@@ -67,6 +69,11 @@ export function Dashboard({ initialTrips }: DashboardProps) {
           Buscar viagens
           <input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Nome ou destino" aria-label="Buscar viagens por nome ou destino" />
         </label>
+        <label htmlFor="trip-sort">Ordenar viagens</label>
+        <select id="trip-sort" value={sort} onChange={(event) => setSort(event.target.value as TripSort)}>
+          <option value="date-asc">Data de ida: mais próxima primeiro</option>
+          <option value="date-desc">Data de ida: mais distante primeiro</option>
+        </select>
         <TripOverview
           hydrated
           archived={showArchived}
