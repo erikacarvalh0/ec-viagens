@@ -4,6 +4,7 @@ import { ArrowLeft, CalendarDays, ExternalLink, MapPin, Users, CarFront, Wallet,
 import { Button, Card } from "@/design-system";
 
 import { formatTripDates, type Trip } from "./trip";
+import { getTripBackLabel } from "./history";
 
 type TripDetailsProps = {
   trip: Trip;
@@ -14,7 +15,7 @@ export function TripDetails({ trip, onBack }: TripDetailsProps) {
   return (
     <div className="trip-details">
       <Button onClick={onBack} variant="ghost">
-        <ArrowLeft size={16} /> Voltar às viagens
+        <ArrowLeft size={16} /> {getTripBackLabel(Boolean(trip.archivedAt))}
       </Button>
 
       <Card className="trip-details__card" padding="lg">
