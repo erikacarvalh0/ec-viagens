@@ -4,15 +4,29 @@ const optionalText = z.string().trim().max(160);
 const period = z.enum(["MORNING", "AFTERNOON", "EVENING"]);
 const optionalPeriod = z.union([period, z.literal("")]);
 
+function validCalendarDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day;
+}
+
+const optionalTravelDate = z.string().refine(
+  (value) => !value || validCalendarDate(value),
+  "Informe uma data válida.",
+);
+
 export const travelDetailsSchema = z
   .object({
     city: optionalText,
     state: z.string().trim().max(2),
     whatsapp: z.string().trim().max(20),
-    outboundAt: z.string(),
+    outboundAt: optionalTravelDate,
     outboundPeriod: optionalPeriod,
     outboundOrigin: optionalText,
-    returnAt: z.string(),
+    returnAt: optionalTravelDate,
     returnPeriod: optionalPeriod,
     returnOrigin: optionalText,
     transportMode: optionalText,
