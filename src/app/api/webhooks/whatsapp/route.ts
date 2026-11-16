@@ -3,6 +3,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { reconcileWhatsAppStatuses } from "@/features/notifications/delivery";
 
 export const runtime = "nodejs";
+const MAX_WEBHOOK_BYTES = 1024 * 1024;
 
 export async function GET(request: Request) {
   const token = process.env.WHATSAPP_VERIFY_TOKEN;
@@ -35,7 +36,32 @@ export async function POST(request: Request) {
     return Response.json({ error: "Webhook not configured." }, { status: 503 });
   }
 
-  const rawBody = await request.text();
+  const advertisedSize = Number(request.headers.get("content-length"));
+  if (Number.isFinite(advertisedSize) && advertisedSize > MAX_WEBHOOK_BYTES) {
+    return Response.json({ error: "Payload too large." }, { status: 413 });
+  }
+
+  let rawBody: string;
+  try {
+    const reader = request.body?.getReader();
+    if (!reader) throw new Error("Missing body.");
+    const decoder = new TextDecoder("utf-8", { fatal: true });
+    let bytes = 0;
+    let body = "";
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > MAX_WEBHOOK_BYTES) {
+        await reader.cancel();
+        return Response.json({ error: "Payload too large." }, { status: 413 });
+      }
+      body += decoder.decode(value, { stream: true });
+    }
+    rawBody = body + decoder.decode();
+  } catch {
+    return Response.json({ error: "Invalid request body." }, { status: 400 });
+  }
   const provided = request.headers.get("x-hub-signature-256") ?? "";
   const expected = `sha256=${createHmac("sha256", secret).update(rawBody).digest("hex")}`;
   const a = Buffer.from(provided);
