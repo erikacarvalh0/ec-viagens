@@ -27,6 +27,7 @@ export function Dashboard({ initialTrips }: DashboardProps) {
   const [trips, setTrips] = useState(initialTrips);
   const selectedTrip = trips.find((trip) => trip.id === selectedTripId);
   const showTrips = section === "overview" || section === "trips";
+  // Keep all member trips in memory; archive status only changes the visible list.
   const visibleTrips = trips.filter((trip) => Boolean(trip.archivedAt) === showArchived);
 
   return (
@@ -56,7 +57,7 @@ export function Dashboard({ initialTrips }: DashboardProps) {
         <>
         <div className="dashboard-actions">
           <Button type="button" variant="secondary" onClick={() => setShowArchived((current) => !current)}>
-            {showArchived ? "Ver viagens ativas" : "Ver viagens arquivadas"}
+            {showArchived ? "Ver viagens ativas" : "Histórico de viagens"}
           </Button>
         </div>
         <TripOverview
