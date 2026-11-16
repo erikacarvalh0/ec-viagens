@@ -1,0 +1,64 @@
+import { randomUUID } from "node:crypto";
+
+import { requireTripMember } from "@/features/members/permissions";
+import { uploadPrivatePhoto } from "@/features/photos/storage";
+import { MAX_PHOTO_BYTES, validatePhotoUpload } from "@/features/photos/validation";
+import { prisma } from "@/lib/prisma";
+
+export const runtime = "nodejs";
+
+type Context = { params: Promise<{ tripId: string }> };
+
+export async function POST(request: Request, context: Context) {
+  const { tripId } = await context.params;
+  let member: Awaited<ReturnType<typeof requireTripMember>>;
+  try {
+    member = await requireTripMember(tripId);
+  } catch {
+    return Response.json({ error: "Acesso negado." }, { status: 403 });
+  }
+
+  const declaredSize = Number(request.headers.get("content-length") ?? 0);
+  if (declaredSize > MAX_PHOTO_BYTES + 4096) {
+    return Response.json({ error: "Arquivo muito grande." }, { status: 413 });
+  }
+
+  let form: FormData;
+  try {
+    form = await request.formData();
+  } catch {
+    return Response.json({ error: "Formulário inválido." }, { status: 400 });
+  }
+
+  const file = form.get("photo");
+  if (!(file instanceof File) || file.size > MAX_PHOTO_BYTES) {
+    return Response.json({ error: "Selecione uma imagem de até 5 MB." }, { status: 400 });
+  }
+
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  let contentType: string;
+  try {
+    contentType = validatePhotoUpload(bytes, file.type);
+  } catch {
+    return Response.json({ error: "Envie uma imagem JPEG ou PNG válida." }, { status: 400 });
+  }
+
+  const rawCaption = form.get("caption");
+  const caption = typeof rawCaption === "string" ? rawCaption.trim().slice(0, 200) : "";
+  const key = `trips/${tripId}/${randomUUID()}.${contentType === "image/png" ? "png" : "jpg"}`;
+
+  try {
+    await uploadPrivatePhoto(key, bytes, contentType);
+    const photo = await prisma.photo.create({
+      data: {
+        tripId,
+        uploadedById: member.userId,
+        storageKey: key,
+        caption: caption || null,
+      },
+    });
+    return Response.json({ id: photo.id }, { status: 201 });
+  } catch {
+    return Response.json({ error: "Não foi possível salvar a foto." }, { status: 500 });
+  }
+}
