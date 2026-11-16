@@ -56,4 +56,27 @@ describe("session revocation", () => {
   it("rejects tokens issued before session versioning", async () => {
     expect(await jwtCallback({ token: { userId: "user-1" }, trigger: "update", session: {} } as never)).toBeNull();
   });
+  it("rejects sessions belonging to deleted users", async () => {
+    vi.mocked(prisma.user.findUnique).mockResolvedValueOnce(null);
+    const token = { userId: "deleted-user", sessionVersion: 1 };
+    expect(await jwtCallback({ token, trigger: "update", session: {} } as never)).toBeNull();
+    expect(prisma.user.findUnique).toHaveBeenLastCalledWith({
+      where: { id: "deleted-user" },
+      select: { sessionVersion: true },
+    });
+  });
+
+  it("copies the session version from a newly authenticated user", async () => {
+    const token = { sub: "user-1" };
+    const result = await jwtCallback({
+      token,
+      user: { id: "user-1", sessionVersion: 7 },
+      trigger: "signIn",
+    } as never);
+    expect(result).toEqual({ sub: "user-1", userId: "user-1", sessionVersion: 7 });
+  });
+
+  it("rejects tokens without an authenticated user id", async () => {
+    expect(await jwtCallback({ token: { sessionVersion: 1 }, trigger: "update" } as never)).toBeNull();
+  });
 });
