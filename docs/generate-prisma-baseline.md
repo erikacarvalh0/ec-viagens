@@ -1,0 +1,3 @@
+# Generate and review the initial Prisma baseline
+
+Run the **Generate Prisma Baseline SQL** workflow manually and download the `prisma-baseline-sql` artifact. Review the generated SQL, especially foreign keys, indexes, enums and the existing `PasswordResetToken` table. The current Prisma schema includes the password reset table, so do **not** blindly commit this SQL as an initial migration alongside the existing additive password-reset migration: that would create the table twice. Reconcile migration ordering and database history first. The workflow never modifies production data or applies SQL. A separate PR must commit a correct baseline and verify `prisma migrate deploy` against an empty PostgreSQL database.

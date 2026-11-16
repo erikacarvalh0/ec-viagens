@@ -1,0 +1,28 @@
+name: Generate Prisma Baseline SQL
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate-baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - run: npm install --no-audit --no-fund
+      - name: Generate complete baseline SQL for review
+        run: |
+          mkdir -p baseline-output
+          npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script > baseline-output/migration.sql
+          test -s baseline-output/migration.sql
+      - name: Publish baseline SQL without applying it
+        uses: actions/upload-artifact@v4
+        with:
+          name: prisma-baseline-sql
+          path: baseline-output/migration.sql
+          if-no-files-found: error
