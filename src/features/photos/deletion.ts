@@ -22,6 +22,9 @@ export async function deleteTripPhoto(tripId: string, photoId: string) {
       return { error: "Você não tem permissão para excluir esta foto." };
     }
 
+    if (photo.thumbnailKey) {
+      await deletePrivatePhoto(photo.thumbnailKey);
+    }
     await deletePrivatePhoto(photo.storageKey);
     const result = await prisma.photo.deleteMany({
       where: { id: photoId, tripId },

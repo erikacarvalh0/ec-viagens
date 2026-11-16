@@ -161,6 +161,7 @@ model Photo {
   tripId       String
   uploadedById String
   storageKey   String   @unique
+  thumbnailKey String?  @unique
   caption      String?
   trip         Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
   uploadedBy   User     @relation(fields: [uploadedById], references: [id])

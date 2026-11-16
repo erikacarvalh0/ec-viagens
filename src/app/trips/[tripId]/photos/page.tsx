@@ -38,11 +38,14 @@ export default async function TripPhotosPage({
             {/* The image URL is authenticated and private, not an external CDN. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={`/api/trips/${tripId}/photos/${photo.id}`}
+              src={`/api/trips/${tripId}/photos/${photo.id}?size=thumb`}
               alt={photo.caption || "Foto da viagem"}
               loading="lazy"
+              width={360}
+              height={360}
               style={{ maxWidth: "100%", height: "auto" }}
             />
+            <p><a href={`/api/trips/${tripId}/photos/${photo.id}`} target="_blank" rel="noopener noreferrer">Ver foto maior</a></p>
             {photo.caption && <p>{photo.caption}</p>}
             <p>Enviada por {photo.uploadedBy.name}</p>
             {(membership.role === "ADMIN" || photo.uploadedById === membership.userId) && (
