@@ -26,6 +26,7 @@ describe("consent revocation ownership", () => {
     mocks.userId.mockResolvedValue("user-1");
     mocks.update.mockResolvedValue({ whatsapp: "5511999999999" });
     mocks.updateMany.mockResolvedValue({ count: 1 });
+    mocks.findMany.mockResolvedValue([{ id: "charge-1" }]);
   });
 
   it("only cancels pending reminders for charges owned by the current user", async () => {
