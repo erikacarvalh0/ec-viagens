@@ -18,11 +18,20 @@ export async function updateReminderConsent(consent: boolean) {
       select: { whatsapp: true },
     });
     if (!consent && user.whatsapp) {
+      const charges = await prisma.charge.findMany({
+        where: { member: { userId } },
+        select: { id: true },
+      });
+      if (charges.length === 0) {
+        revalidatePath("/settings/notifications");
+        return { error: "", success: true };
+      }
       await prisma.notification.updateMany({
         where: {
           kind: "PAYMENT_REMINDER",
           status: "PENDING",
           recipientWhatsapp: user.whatsapp,
+          referenceId: { in: charges.map((charge) => charge.id) },
         },
         data: { status: "CANCELLED" },
       });
