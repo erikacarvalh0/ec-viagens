@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   findFirst: vi.fn(),
   findPayment: vi.fn(),
   update: vi.fn(),
+  updateMany: vi.fn(),
   revalidate: vi.fn(),
 }));
 
@@ -12,7 +13,7 @@ vi.mock("@/features/members/permissions", () => ({
   requireTripAdmin: mocks.admin,
 }));
 vi.mock("@/lib/prisma", () => ({
-  prisma: { charge: { findFirst: mocks.findFirst, update: mocks.update } },
+  prisma: { charge: { findFirst: mocks.findFirst, update: mocks.update, updateMany: mocks.updateMany } },
 }));
 vi.mock("./asaas", () => ({
   findAsaasPaymentByReference: mocks.findPayment,
@@ -36,6 +37,7 @@ describe("recovering a charge after an Asaas request failure", () => {
       status: "PENDING",
     });
     mocks.update.mockResolvedValue({ id: "charge-a" });
+    mocks.updateMany.mockResolvedValue({ count: 1 });
   });
 
   it("recovers an existing payment without creating another one", async () => {
@@ -43,14 +45,21 @@ describe("recovering a charge after an Asaas request failure", () => {
 
     expect(result.error).toBe("");
     expect(mocks.findPayment).toHaveBeenCalledWith("charge-a");
-    expect(mocks.update).toHaveBeenCalledWith({
-      where: { id: "charge-a" },
+    expect(mocks.updateMany).toHaveBeenCalledWith({
+      where: { id: "charge-a", status: "PENDING", asaasPaymentId: null },
       data: {
         asaasPaymentId: "pay-a",
         paymentUrl: "https://sandbox.asaas.com/i/abc",
         status: "PENDING",
       },
     });
+  });
+
+  it("does not overwrite a charge linked by a concurrent webhook", async () => {
+    mocks.updateMany.mockResolvedValue({ count: 0 });
+    const result = await recoverCharge("trip-a", "charge-a");
+    expect(result.success).toBeUndefined();
+    expect(result.error).toContain("outra operação");
   });
 
   it("prevents access by non-admins", async () => {
@@ -77,7 +86,7 @@ describe("recovering a charge after an Asaas request failure", () => {
     const result = await recoverCharge("trip-a", "charge-a");
 
     expect(result.error).not.toBe("");
-    expect(mocks.update).not.toHaveBeenCalled();
+    expect(mocks.updateMany).not.toHaveBeenCalled();
   });
 
   it("does not overwrite already linked charges", async () => {
