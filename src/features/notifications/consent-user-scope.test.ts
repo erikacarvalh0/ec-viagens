@@ -31,6 +31,10 @@ describe("consent revocation ownership", () => {
 
   it("only cancels pending reminders for charges owned by the current user", async () => {
     await updateReminderConsent(false);
+    expect(mocks.findMany).toHaveBeenCalledWith({
+      where: { member: { userId: "user-1" } },
+      select: { id: true },
+    });
     expect(mocks.updateMany).toHaveBeenCalledWith({
       where: {
         kind: "PAYMENT_REMINDER",
