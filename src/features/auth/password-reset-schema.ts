@@ -1,6 +1,6 @@
 import { z } from "zod";
 export const passwordResetRequestSchema = z.object({
-  email: z.string().trim().email().transform((email) => email.toLowerCase()),
+  email: z.string().trim().max(254).email().transform((email) => email.toLowerCase()),
 });
 export const passwordResetConfirmationSchema = z.object({
   token: z.string().regex(/^[a-f0-9]{64}$/),
