@@ -59,10 +59,11 @@ export type Trip = TripDraft & {
 
 export function formatTripDates(trip: Trip): string {
   function formatDate(value: string): string {
-    return new Date(`${value}T12:00:00`).toLocaleDateString("pt-BR", {
+    return new Date(`${value}T12:00:00Z`).toLocaleDateString("pt-BR", {
       day: "2-digit",
       month: "short",
       year: "numeric",
+      timeZone: "UTC",
     });
   }
 
