@@ -36,6 +36,16 @@ jobs:
           node-version: "22"
       - run: npm install --no-audit --no-fund
       - run: npm run db:generate
+      - name: Wait for PostgreSQL to accept connections
+        run: |
+          for attempt in $(seq 1 15); do
+            if pg_isready -h localhost -p 5432 -U postgres -d ec_viagens_test; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "PostgreSQL was not ready within the allotted checks." >&2
+          exit 1
       - name: Apply versioned migrations to fresh PostgreSQL
         run: npx prisma migrate deploy
       - name: Verify migrated database matches Prisma schema
