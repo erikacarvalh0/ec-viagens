@@ -13,7 +13,7 @@ export async function renewInvitation(tripId: string, invitationId: string): Pro
     const invitation = await transaction.invitation.findFirst({
       where: { id: invitationId, tripId, status: "PENDING", expiresAt: { lte: now } },
     });
-    if (!invitation) throw new Error("No expired invitation found.");
+    if (!invitation || invitation.expiresAt > now) throw new Error("No expired invitation found.");
 
     const claimed = await transaction.invitation.updateMany({
       where: { id: invitationId, tripId, status: "PENDING", expiresAt: { lte: now } },
