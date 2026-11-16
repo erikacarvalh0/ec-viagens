@@ -36,7 +36,9 @@ jobs:
           node-version: "22"
       - run: npm install --no-audit --no-fund
       - run: npm run db:generate
-      - name: Synchronize disposable test database
-        run: npx prisma db push --skip-generate
+      - name: Apply versioned migrations to fresh PostgreSQL
+        run: npx prisma migrate deploy
+      - name: Verify migrated database matches Prisma schema
+        run: npx prisma migrate diff --from-url "$DATABASE_URL" --to-schema-datamodel prisma/schema.prisma --exit-code
       - name: PostgreSQL integration tests
         run: npx vitest run src/integration/postgres.test.ts src/integration/trip-membership.test.ts src/integration/password-reset.test.ts src/integration/password-reset-completion.test.ts
