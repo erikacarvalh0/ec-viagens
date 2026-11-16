@@ -4,8 +4,14 @@ export function detectPhotoType(bytes: Uint8Array): "image/jpeg" | "image/png" |
   if (bytes.length >= 3 && bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255) {
     return "image/jpeg";
   }
-  if (bytes.length >= 8 &&
-    [137, 80, 78, 71, 13, 10, 26, 10].every((value, index) => bytes[index] === value)) {
+  if (
+    bytes.length >= 24 &&
+    [137, 80, 78, 71, 13, 10, 26, 10].every((value, index) => bytes[index] === value) &&
+    bytes[8] === 0 && bytes[9] === 0 && bytes[10] === 0 && bytes[11] === 13 &&
+    bytes[12] === 73 && bytes[13] === 72 && bytes[14] === 68 && bytes[15] === 82 &&
+    (bytes[16] !== 0 || bytes[17] !== 0 || bytes[18] !== 0 || bytes[19] !== 0) &&
+    (bytes[20] !== 0 || bytes[21] !== 0 || bytes[22] !== 0 || bytes[23] !== 0)
+  ) {
     return "image/png";
   }
   return null;
