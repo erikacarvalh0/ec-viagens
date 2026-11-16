@@ -13,6 +13,12 @@ describe("client photo selection", () => {
     expect(validateSelectedPhoto({ size: 5 * 1024 * 1024 + 1, type: "image/png" })).toBeTruthy();
   });
 
+  it("rejects negative, fractional, non-finite and unsafe sizes", () => {
+    for (const size of [-1, 0.5, Number.NaN, Infinity, -Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+      expect(validateSelectedPhoto({ size, type: "image/jpeg" })).toBeTruthy();
+    }
+  });
+
   it("rejects unsupported formats", () => {
     expect(validateSelectedPhoto({ size: 1024, type: "image/svg+xml" })).toBeTruthy();
     expect(validateSelectedPhoto({ size: 1024, type: "image/webp" })).toBeTruthy();
