@@ -31,6 +31,8 @@ export default async function DashboardPage() {
   return (
     <>
       <nav aria-label="Preferências de conta">
+        <Link href="/settings/profile">Meu perfil</Link>
+        {" · "}
         <Link href="/settings/notifications">Preferências de notificações</Link>
       </nav>
       <Dashboard initialTrips={trips} />
