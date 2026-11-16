@@ -7,6 +7,6 @@ export const registrationSchema = z.object({
 });
 
 export const loginSchema = z.object({
-  email: z.string().trim().email(),
+  email: z.string().trim().email().transform((value) => value.toLowerCase()),
   password: z.string().min(1),
 });
