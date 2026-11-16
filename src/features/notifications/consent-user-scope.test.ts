@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   userId: vi.fn(),
   update: vi.fn(),
   updateMany: vi.fn(),
+  findMany: vi.fn(),
   revalidate: vi.fn(),
 }));
 
