@@ -18,7 +18,9 @@ export async function sendPasswordResetEmail(email: string, token: string): Prom
   }
   const link = new URL("/reset-password", origin);
   link.searchParams.set("token", token);
-  const response = await fetch(PROVIDER_URL, {
+  let response: Response;
+  try {
+    response = await fetch(PROVIDER_URL, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -31,7 +33,11 @@ export async function sendPasswordResetEmail(email: string, token: string): Prom
       text: `Você solicitou uma nova senha no EC Viagens. Use este link em até 1 hora: ${link.toString()}\nSe não foi você, ignore esta mensagem.`,
     }),
     cache: "no-store",
-  });
+    signal: AbortSignal.timeout(10_000),
+    });
+  } catch {
+    throw new Error("Password reset email delivery failed.");
+  }
   if (!response.ok) {
     throw new Error("Password reset email delivery failed.");
   }
