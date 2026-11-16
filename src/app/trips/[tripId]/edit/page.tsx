@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { requireTripAdmin } from "@/features/members/permissions";
 import { EditTripForm } from "@/features/trips/EditTripForm";
+import { DeleteTripForm } from "@/features/trips/DeleteTripForm";
 
 type PageProps = { params: Promise<{ tripId: string }> };
 
@@ -28,6 +29,7 @@ export default async function EditTripPage({ params }: PageProps) {
           mapUrl: trip.mapUrl ?? "",
         }}
       />
+      <DeleteTripForm tripId={tripId} />
     </main>
   );
 }
