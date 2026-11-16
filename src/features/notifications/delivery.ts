@@ -38,6 +38,10 @@ export async function reconcileWhatsAppStatuses(input: unknown) {
         if (!notification) continue;
 
         const transition = transitions[receipt.status];
+        if (!(transition.from as readonly string[]).includes(notification.status)) {
+          continue;
+        }
+
         const result = await prisma.notification.updateMany({
           where: {
             id: notification.id,
