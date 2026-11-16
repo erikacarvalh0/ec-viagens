@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Card } from "@/design-system";
 import { getCoordinationGroups } from "@/features/travel/coordination";
 import { TravelForm } from "@/features/travel/TravelForm";
+import { RideOfferList } from "@/features/travel/RideOfferList";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/session";
 
@@ -60,7 +61,7 @@ export default async function TravelPage({ params }: PageProps) {
 
   const sections = [
     { title: "Precisam de carona", people: groups.rideSeekers },
-    { title: "Oferecem carona", people: groups.rideOffers },
+
     { title: "Compartilhar Uber", people: groups.uberSharing },
     { title: "Interessadas em van", people: groups.vanInterested },
   ];
@@ -73,6 +74,7 @@ export default async function TravelPage({ params }: PageProps) {
       <TravelForm isAdmin={current.role === "ADMIN"} profile={profile} tripId={tripId} />
 
       <section className="travel-groups">
+        <RideOfferList members={groups.rideOffers.map(({ id, name, travel }) => ({ id, name, travel: travel ? { rideOutbound: travel.rideOutbound, rideReturn: travel.rideReturn } : null }))} />
         {sections.map((section) => (
           <Card key={section.title} padding="md">
             <h2>{section.title}</h2>
