@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { Card } from "@/design-system";
 import { buildFinancialReport } from "@/features/payments/report";
+import { financialReportCsv } from "@/features/payments/export";
 import { formatBRL } from "@/features/payments/schema";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/session";
@@ -35,6 +36,10 @@ export default async function TripFinancialReportPage({ params }: PageProps) {
   ]);
 
   const report = buildFinancialReport(charges);
+  const csv = financialReportCsv(members.map((member) => ({
+    name: member.user.name,
+    ...(report.byMember[member.id] ?? { expectedCents: 0, paidCents: 0, outstandingCents: 0 }),
+  })));
 
   return (
     <main className="members-page">
@@ -58,6 +63,9 @@ export default async function TripFinancialReportPage({ params }: PageProps) {
         ))}
       </section>
 
+      <a download={`relatorio-financeiro-${tripId}.csv`} href={`data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`}>
+        Exportar relatório CSV
+      </a>
       <h2>Situação por participante</h2>
       <section className="payment-plans">
         {members.map((member) => {
