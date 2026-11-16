@@ -37,8 +37,6 @@ export function TripDetails({ trip, onBack }: TripDetailsProps) {
           </a>
         )}
 
-        <Link href={`/trips/${trip.id}/edit`}>Editar dados da viagem (administradoras)</Link>
-
         <Link href={`/trips/${trip.id}/overview`}>Visão geral da viagem</Link>
 
         <Link href={`/trips/${trip.id}/members`}>
