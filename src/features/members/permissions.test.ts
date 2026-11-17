@@ -117,4 +117,12 @@ describe("trip permissions", () => {
 
     expect(mocks.update).not.toHaveBeenCalled();
   });
+  it("rejects idempotent requests after actor permissions are revoked", async () => {
+    mocks.findUnique
+      .mockResolvedValueOnce({ id: "actor", role: "ADMIN" })
+      .mockResolvedValueOnce({ id: "actor", role: "MEMBER" });
+    mocks.findFirst.mockResolvedValue({ id: "target", role: "ADMIN" });
+    await expect(changeMemberRole("trip-a", "target", "ADMIN")).rejects.toThrow("Administrator permissions required.");
+    expect(mocks.update).not.toHaveBeenCalled();
+  });
 });
