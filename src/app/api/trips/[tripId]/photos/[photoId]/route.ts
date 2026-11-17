@@ -1,5 +1,6 @@
 import { requireTripMember } from "@/features/members/permissions";
 import { downloadPrivatePhoto } from "@/features/photos/storage";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -9,6 +10,7 @@ export async function GET(
   { params }: { params: Promise<{ tripId: string; photoId: string }> },
 ) {
   const { tripId, photoId } = await params;
+  if (!(await auth())?.user?.id) return new Response("Unauthorized", { status: 401 });
   try {
     await requireTripMember(tripId);
   } catch {

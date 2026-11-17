@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   download: vi.fn(),
 }));
 vi.mock("@/features/members/permissions", () => ({ requireTripMember: mocks.member }));
+vi.mock("@/lib/auth", () => ({ auth: vi.fn(async () => ({ user: { id: "user-1" } })) }));
 vi.mock("@/lib/prisma", () => ({ prisma: { photo: { findFirst: mocks.findFirst } } }));
 vi.mock("@/features/photos/storage", () => ({ downloadPrivatePhoto: mocks.download }));
 

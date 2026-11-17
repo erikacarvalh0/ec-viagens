@@ -4,6 +4,7 @@ import { requireTripMember } from "@/features/members/permissions";
 import { deletePrivatePhoto, uploadPrivatePhoto } from "@/features/photos/storage";
 import { optimizePhoto } from "@/features/photos/optimization";
 import { MAX_PHOTO_BYTES, validatePhotoUpload } from "@/features/photos/validation";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -12,6 +13,7 @@ type Context = { params: Promise<{ tripId: string }> };
 
 export async function POST(request: Request, context: Context) {
   const { tripId } = await context.params;
+  if (!(await auth())?.user?.id) return new Response("Unauthorized", { status: 401 });
   let member: Awaited<ReturnType<typeof requireTripMember>>;
   try {
     member = await requireTripMember(tripId);

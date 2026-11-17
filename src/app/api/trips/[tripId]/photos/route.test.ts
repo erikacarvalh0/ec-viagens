@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   optimize: vi.fn(),
 }));
 vi.mock("@/features/members/permissions", () => ({ requireTripMember: mocks.member }));
+vi.mock("@/lib/auth", () => ({ auth: vi.fn(async () => ({ user: { id: "user-1" } })) }));
 vi.mock("@/lib/prisma", () => ({ prisma: { photo: { create: mocks.create } } }));
 vi.mock("@/features/photos/storage", () => ({ uploadPrivatePhoto: mocks.upload, deletePrivatePhoto: mocks.remove }));
 
