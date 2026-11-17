@@ -1,5 +1,10 @@
 import { defineConfig } from "@playwright/test";
 
+const database = new URL(process.env.DATABASE_URL ?? "postgresql://invalid/invalid");
+if (!["localhost", "127.0.0.1"].includes(database.hostname) || database.pathname !== "/ec_viagens_e2e" || !["postgresql:", "postgres:"].includes(database.protocol)) {
+  throw new Error("Playwright requires an isolated local ec_viagens_e2e database.");
+}
+
 export default defineConfig({
   testDir: "./e2e",
   workers: 1,
