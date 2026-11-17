@@ -14,8 +14,8 @@ test("anonymous and unrelated authenticated users cannot access private photo AP
   const endpoint = `/api/trips/${trip.id}/photos`;
   const photo = `${endpoint}/${randomUUID()}`;
   try {
-    expect((await request.get(photo)).status()).toBe(403);
-    expect((await request.post(endpoint)).status()).toBe(403);
+    expect((await request.get(photo)).status()).toBe(401);
+    expect((await request.post(endpoint)).status()).toBe(401);
     await page.goto("/register");
     await page.getByLabel("Nome").fill("Outside User");
     await page.getByLabel("E-mail").fill(email);
