@@ -28,7 +28,7 @@ test("registers, rejects invalid credentials, signs in and signs out", async ({ 
   await page.getByLabel("E-mail").fill(email);
   await page.getByLabel("Senha").fill("wrong-password");
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
-  await expect(page.getByRole("alert")).toContainText("E-mail ou senha inválidos.");
+  await expect(page.locator("form").getByRole("alert")).toContainText("E-mail ou senha inválidos.");
   await page.getByLabel("E-mail").fill(email);
   await page.getByLabel("Senha").fill(password);
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
