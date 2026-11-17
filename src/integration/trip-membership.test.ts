@@ -43,4 +43,17 @@ describe.skipIf(!enabled)("trip membership integration", () => {
    await db.trip.delete({where:{id:otherTrip.id}});
   }
  });
+ it("allows only one concurrent membership creation for the same user and trip", async () => {
+  const concurrentTrip = await db.trip.create({data:{name:"Concurrent Membership"}});
+  try {
+   const create = () => db.tripMember.create({data:{tripId:concurrentTrip.id,userId,role:"MEMBER"}});
+   const results = await Promise.allSettled([create(),create()]);
+   expect(results.filter(result => result.status === "fulfilled")).toHaveLength(1);
+   const rejected = results.find(result => result.status === "rejected");
+   expect(rejected).toMatchObject({status:"rejected",reason:{code:"P2002"}});
+   expect(await db.tripMember.count({where:{tripId:concurrentTrip.id,userId}})).toBe(1);
+  } finally {
+   await db.trip.delete({where:{id:concurrentTrip.id}});
+  }
+ });
 });
