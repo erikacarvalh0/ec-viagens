@@ -41,7 +41,7 @@ test("password reset revokes the previous session and consumes its token", async
     await expect(page).toHaveURL(/\/login(?:\?|$)/);
     await resetPage.reload();
     await submit();
-    await expect(resetPage.getByRole("alert")).toContainText("Não foi possível redefinir a senha.");
+    await expect(resetPage.locator("form").getByRole("alert")).toContainText("Não foi possível redefinir a senha.");
     await page.getByLabel("E-mail").fill(email);
     await page.getByLabel("Senha").fill(newPassword);
     await page.getByRole("button", { name: "Entrar", exact: true }).click();
