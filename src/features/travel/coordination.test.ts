@@ -77,5 +77,6 @@ describe("ride coordination", () => {
     expect(groups.outboundRideOffers).toEqual([]);
     expect(groups.returnRideOffers).toEqual([]);
     expect(groups.uberSharing).toEqual([]);
+    expect(groups.vanInterested).toEqual([]);
   });
 });
