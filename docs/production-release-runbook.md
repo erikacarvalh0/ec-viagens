@@ -10,6 +10,14 @@
 - Verify the database backup schedule and perform a **restoration drill** on an isolated environment before release.
 - Verify health checks, error monitoring, alerts for payment webhook failures, WhatsApp delivery backlog and storage failures.
 
+## Private beta monitoring gates
+
+Configure an external HTTPS probe of /api/health (every minute); alert the operator after three consecutive non-200 responses. Confirm a 503 produces a readiness_failed event and the response X-Request-Id matches the log. Do not expose raw logs to beta users.
+
+Configure log alerts for payment_reconciliation_failed and reminder_processing_failed (any event), and review notification REVIEW_REQUIRED backlog every day. A correlation ID is diagnostic only, not an authorization token. Never log provider payloads or credentials. Exercise these alerts in staging before enabling real integrations.
+
+Record alert destination, operator, test date, and evidence in the release record. Until the checks are verified, real payments and automatic WhatsApp must remain disabled through deployment configuration or an independently verified feature gate.
+
 ## Deployment sequence
 
 1. Capture release SHA, migration list, environment and rollback owner.
