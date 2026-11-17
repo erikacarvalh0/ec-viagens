@@ -7,12 +7,17 @@ import { requireTripAdmin } from "@/features/members/permissions";
 import { prisma } from "@/lib/prisma";
 
 export async function deleteEmptyTrip(tripId: string, confirmation: string) {
-  await requireTripAdmin(tripId);
+  const actor = await requireTripAdmin(tripId);
   if (confirmation !== "EXCLUIR") {
     throw new Error("Confirmação inválida. Digite EXCLUIR.");
   }
 
   await prisma.$transaction(async (tx) => {
+    const permitted = await tx.tripMember.findFirst({
+      where: { id: actor.id, tripId, role: "ADMIN" },
+      select: { id: true },
+    });
+    if (!permitted) throw new Error("Administrator permissions required.");
     const [photoCount, chargeCount] = await Promise.all([
       tx.photo.count({ where: { tripId } }),
       tx.charge.count({ where: { plan: { tripId } } }),
