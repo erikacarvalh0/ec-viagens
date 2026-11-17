@@ -75,15 +75,15 @@ export async function POST(request: Request, context: Context) {
   const photoId = randomUUID();
   const key = `trips/${tripId}/${photoId}.jpg`;
   const thumbnailKey = `trips/${tripId}/${photoId}-thumb.jpg`;
-  let uploadedOriginal = false;
-  let uploadedThumbnail = false;
+  let attemptedOriginal = false;
+  let attemptedThumbnail = false;
 
   try {
     const optimized = await optimizePhoto(bytes);
+    attemptedOriginal = true;
     await uploadPrivatePhoto(key, optimized.original.bytes, optimized.original.contentType);
-    uploadedOriginal = true;
+    attemptedThumbnail = true;
     await uploadPrivatePhoto(thumbnailKey, optimized.thumbnail.bytes, optimized.thumbnail.contentType);
-    uploadedThumbnail = true;
     const photo = await prisma.photo.create({
       data: {
         tripId,
@@ -95,9 +95,9 @@ export async function POST(request: Request, context: Context) {
     });
     return Response.json({ id: photo.id }, { status: 201 });
   } catch {
-    // Best-effort cleanup of objects uploaded before the database operation failed.
-    if (uploadedThumbnail) await deletePrivatePhoto(thumbnailKey).catch(() => undefined);
-    if (uploadedOriginal) await deletePrivatePhoto(key).catch(() => undefined);
+    // Best-effort cleanup, including PUT requests whose outcome was uncertain.
+    if (attemptedThumbnail) await deletePrivatePhoto(thumbnailKey).catch(() => undefined);
+    if (attemptedOriginal) await deletePrivatePhoto(key).catch(() => undefined);
     return Response.json({ error: "Não foi possível processar ou salvar a foto." }, { status: 500 });
   }
 }
