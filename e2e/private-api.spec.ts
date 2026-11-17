@@ -28,6 +28,11 @@ test("anonymous and unrelated authenticated users cannot access private photo AP
     await expect(page).toHaveURL(/\/dashboard$/);
     expect((await page.request.get(photo)).status()).toBe(403);
     expect((await page.request.post(endpoint)).status()).toBe(403);
+    for (const section of ["overview", "members", "travel", "photos"]) {
+      const response = await page.request.get(`/trips/${trip.id}/${section}`, { maxRedirects: 0 });
+      expect([302, 303, 307, 308, 403, 404]).toContain(response.status());
+      expect(await response.text()).not.toContain("Private API E2E");
+    }
   } finally {
     await db.trip.delete({ where: { id: trip.id } });
     await db.user.deleteMany({ where: { email } });
