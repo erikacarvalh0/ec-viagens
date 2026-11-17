@@ -54,4 +54,15 @@ describe("Asaas webhook endpoint", () => {
     expect(response.status).toBe(200);
     expect(mocks.reconcile).toHaveBeenCalledOnce();
   });
+  it("correlates operational failures without logging private details", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    vi.stubEnv("ASAAS_WEBHOOK_TOKEN", "expected");
+    mocks.reconcile.mockRejectedValueOnce(new Error("private details"));
+    const response = await POST(new Request("http://localhost/api/webhooks/asaas", { method: "POST", headers: { "asaas-access-token": "expected" }, body: "{}" }));
+    expect(response.status).toBe(500);
+    const event = JSON.parse(String(warn.mock.calls[0][0]));
+    expect(event).toMatchObject({ requestId: response.headers.get("x-request-id"), status: 500 });
+    expect(JSON.stringify(event)).not.toContain("private details");
+    warn.mockRestore();
+  });
 });

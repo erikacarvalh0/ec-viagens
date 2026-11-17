@@ -1,4 +1,4 @@
-import { timingSafeEqual } from "node:crypto";
+import { randomUUID, timingSafeEqual } from "node:crypto";
 
 import { reconcileAsaasEvent } from "@/features/payments/webhook";
 
@@ -18,6 +18,8 @@ function validToken(actual: string | null, expected: string) {
 }
 
 export async function POST(request: Request) {
+  const requestId = randomUUID();
+  const startedAt = Date.now();
   const expectedToken = process.env.ASAAS_WEBHOOK_TOKEN;
 
   if (!expectedToken) {
@@ -65,6 +67,7 @@ export async function POST(request: Request) {
       return Response.json({ error: "Invalid event." }, { status: 400 });
     }
 
-    return Response.json({ error: "Reconciliation failed." }, { status: 500 });
+    console.warn(JSON.stringify({ event: "payment_reconciliation_failed", requestId, status: 500, durationMs: Date.now() - startedAt }));
+    return Response.json({ error: "Reconciliation failed." }, { status: 500, headers: { "X-Request-Id": requestId } });
   }
 }

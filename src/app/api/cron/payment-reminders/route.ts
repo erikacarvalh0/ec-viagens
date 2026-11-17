@@ -1,10 +1,12 @@
-import { timingSafeEqual } from "node:crypto";
+import { randomUUID, timingSafeEqual } from "node:crypto";
 
 import { dispatchDuePaymentReminders } from "@/features/notifications/dispatch";
 
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
+  const requestId = randomUUID();
+  const startedAt = Date.now();
   const secret = process.env.CRON_SECRET;
 
   if (!secret) {
@@ -24,6 +26,7 @@ export async function GET(request: Request) {
     const result = await dispatchDuePaymentReminders();
     return Response.json(result);
   } catch {
-    return Response.json({ error: "Reminder processing failed." }, { status: 500 });
+    console.warn(JSON.stringify({ event: "reminder_processing_failed", requestId, status: 500, durationMs: Date.now() - startedAt }));
+    return Response.json({ error: "Reminder processing failed." }, { status: 500, headers: { "X-Request-Id": requestId } });
   }
 }
