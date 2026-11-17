@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks=vi.hoisted(()=>({member:vi.fn(),create:vi.fn(),upload:vi.fn()}));
 vi.mock("@/features/members/permissions",()=>({requireTripMember:mocks.member}));
+vi.mock("@/lib/auth", () => ({ auth: vi.fn(async () => ({ user: { id: "user-1" } })) }));
 vi.mock("@/lib/prisma",()=>({prisma:{photo:{create:mocks.create}}}));
 vi.mock("@/features/photos/storage",()=>({uploadPrivatePhoto:mocks.upload,deletePrivatePhoto:vi.fn()}));
 import { POST } from "./route";
