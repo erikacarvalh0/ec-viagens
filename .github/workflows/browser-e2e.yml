@@ -38,3 +38,12 @@ jobs:
       - run: npx prisma migrate deploy
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+        # The line reporter keeps diagnostics without uploading browser state or tokens.
+      - name: Upload failure summary
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-failure-summary
+          path: test-results/.last-run.json
+          if-no-files-found: ignore
+          retention-days: 7
