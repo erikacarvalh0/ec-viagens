@@ -44,6 +44,15 @@ export async function changeMemberRole(
         throw new Error("Member not found.");
       }
 
+      // Recheck the actor within the transaction to avoid stale permissions.
+      const currentActor = await transaction.tripMember.findUnique({
+        where: { id: actor.id },
+      });
+
+      if (currentActor?.role !== "ADMIN") {
+        throw new Error("Administrator permissions required.");
+      }
+
       if (target.role === nextRole) {
         return;
       }
@@ -56,15 +65,6 @@ export async function changeMemberRole(
         if (adminCount <= 1) {
           throw new Error("A trip must have at least one administrator.");
         }
-      }
-
-      // Recheck the actor within the transaction to avoid stale permissions.
-      const currentActor = await transaction.tripMember.findUnique({
-        where: { id: actor.id },
-      });
-
-      if (currentActor?.role !== "ADMIN") {
-        throw new Error("Administrator permissions required.");
       }
 
       await transaction.tripMember.update({
