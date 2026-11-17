@@ -25,21 +25,27 @@ describe.skipIf(process.env.RUN_POSTGRES_INTEGRATION !== "1")("password reset co
   await db.passwordResetToken.create({data:{
    userId,tokenHash:hashPasswordResetToken(token),expiresAt:new Date(Date.now()+60000),
   }});
+  const before = await db.user.findUniqueOrThrow({where:{id:userId}});
   await completePasswordReset({token,password:"secure-new-password-123"});
   const user = await db.user.findUniqueOrThrow({where:{id:userId}});
   expect(await verifyPassword("secure-new-password-123",user.passwordHash)).toBe(true);
+  expect(user.sessionVersion).toBe(before.sessionVersion + 1);
   const stored = await db.passwordResetToken.findUniqueOrThrow({where:{tokenHash:hashPasswordResetToken(token)}});
   expect(stored.usedAt).toBeInstanceOf(Date);
   await expect(completePasswordReset({token,password:"another-secure-password-123"})).rejects.toThrow("Invalid or expired reset token.");
-  expect((await db.user.findUniqueOrThrow({where:{id:userId}})).passwordHash).toBe(user.passwordHash);
+  const afterReuse = await db.user.findUniqueOrThrow({where:{id:userId}});
+  expect(afterReuse.passwordHash).toBe(user.passwordHash);
+  expect(afterReuse.sessionVersion).toBe(user.sessionVersion);
  });
  it("does not change the password for expired tokens", async () => {
   const token = createPasswordResetToken();
   await db.passwordResetToken.create({data:{
    userId,tokenHash:hashPasswordResetToken(token),expiresAt:new Date(Date.now()-1000),
   }});
-  const before = (await db.user.findUniqueOrThrow({where:{id:userId}})).passwordHash;
+  const before = await db.user.findUniqueOrThrow({where:{id:userId}});
   await expect(completePasswordReset({token,password:"secure-new-password-456"})).rejects.toThrow("Invalid or expired reset token.");
-  expect((await db.user.findUniqueOrThrow({where:{id:userId}})).passwordHash).toBe(before);
+  const after = await db.user.findUniqueOrThrow({where:{id:userId}});
+  expect(after.passwordHash).toBe(before.passwordHash);
+  expect(after.sessionVersion).toBe(before.sessionVersion);
  });
 });
