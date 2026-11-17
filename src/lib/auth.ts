@@ -5,10 +5,12 @@ import { loginSchema } from "@/features/auth/schemas";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/password";
 
+const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: {
     strategy: "jwt",
-    maxAge: 60 * 60 * 24 * 7,
+    maxAge: SESSION_MAX_AGE,
   },
   pages: {
     signIn: "/login",
@@ -57,12 +59,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         token.userId = user.id;
         token.sessionVersion = user.sessionVersion;
+        token.absoluteExpiresAt = Date.now() + SESSION_MAX_AGE * 1000;
         return token;
       }
 
       if (typeof token.userId !== "string" || typeof token.sessionVersion !== "number") {
         return null;
       }
+      if (typeof token.absoluteExpiresAt !== "number" || !Number.isFinite(token.absoluteExpiresAt) || token.absoluteExpiresAt <= Date.now()) return null;
       const current = await prisma.user.findUnique({
         where: { id: token.userId },
         select: { sessionVersion: true },
