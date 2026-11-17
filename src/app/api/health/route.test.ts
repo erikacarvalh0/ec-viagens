@@ -15,8 +15,13 @@ describe("production readiness", () => {
 
   it("returns 503 without exposing database errors", async () => {
     vi.mocked(prisma.$queryRaw).mockRejectedValueOnce(new Error("sensitive connection details"));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const result = await GET();
     expect(result.status).toBe(503);
+    const event = JSON.parse(String(warn.mock.calls[0][0]));
+    expect(event).toMatchObject({ event: "readiness_failed", requestId: result.headers.get("x-request-id"), status: 503 });
+    expect(JSON.stringify(event)).not.toContain("sensitive connection details");
+    warn.mockRestore();
     expect(await result.json()).toEqual({ status: "unavailable" });
   });
 });
