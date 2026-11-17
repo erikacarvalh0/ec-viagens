@@ -43,13 +43,13 @@ describe("credentials input bounds", () => {
 describe("session revocation", () => {
   it("rejects a session whose version was revoked", async () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({ sessionVersion: 3 } as never);
-    const token = { userId: "user-1", sessionVersion: 2 };
+    const token = { userId: "user-1", sessionVersion: 2, absoluteExpiresAt: Date.now() + 60000 };
     expect(await jwtCallback({ token, trigger: "update", session: {} } as never)).toBeNull();
   });
 
   it("preserves a session whose version matches the database", async () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({ sessionVersion: 3 } as never);
-    const token = { userId: "user-1", sessionVersion: 3 };
+    const token = { userId: "user-1", sessionVersion: 3, absoluteExpiresAt: Date.now() + 60000 };
     expect(await jwtCallback({ token, trigger: "update", session: {} } as never)).toEqual(token);
   });
 
@@ -58,7 +58,7 @@ describe("session revocation", () => {
   });
   it("rejects sessions belonging to deleted users", async () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValueOnce(null);
-    const token = { userId: "deleted-user", sessionVersion: 1 };
+    const token = { userId: "deleted-user", sessionVersion: 1, absoluteExpiresAt: Date.now() + 60000 };
     expect(await jwtCallback({ token, trigger: "update", session: {} } as never)).toBeNull();
     expect(prisma.user.findUnique).toHaveBeenLastCalledWith({
       where: { id: "deleted-user" },
@@ -73,7 +73,13 @@ describe("session revocation", () => {
       user: { id: "user-1", sessionVersion: 7 },
       trigger: "signIn",
     } as never);
-    expect(result).toEqual({ sub: "user-1", userId: "user-1", sessionVersion: 7 });
+    expect(result).toEqual({ sub: "user-1", userId: "user-1", sessionVersion: 7, absoluteExpiresAt: expect.any(Number) });
+  });
+
+  it("rejects an expired session even when its version matches", async () => {
+    const token = { userId: "user-1", sessionVersion: 3, absoluteExpiresAt: Date.now() - 1 };
+    expect(await jwtCallback({ token, trigger: "update" } as never)).toBeNull();
+    expect(prisma.user.findUnique).not.toHaveBeenCalled();
   });
 
   it("rejects tokens without an authenticated user id", async () => {
