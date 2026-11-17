@@ -46,4 +46,14 @@ describe("stale WhatsApp processing", () => {
       data: { status: "REVIEW_REQUIRED" },
     });
   });
+  it("does not report recovery as successful when the database fails", async () => {
+    mocks.updateMany.mockRejectedValueOnce(new Error("Database unavailable"));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    try {
+      await expect(markStaleProcessingForReview()).rejects.toThrow("Database unavailable");
+      expect(warn).not.toHaveBeenCalled();
+    } finally {
+      warn.mockRestore();
+    }
+  });
 });
