@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   admin: vi.fn(),
   transaction: vi.fn(),
+  findFirst: vi.fn(),
   photoCount: vi.fn(),
   chargeCount: vi.fn(),
   deleteMany: vi.fn(),
@@ -17,11 +18,13 @@ import { deleteEmptyTrip } from "./deletion";
 describe("safe trip deletion", () => {
   beforeEach(() => {
     mocks.admin.mockResolvedValue({ id: "member-1", role: "ADMIN" });
+    mocks.findFirst.mockResolvedValue({ id: "member-1" });
     mocks.photoCount.mockResolvedValue(0);
     mocks.chargeCount.mockResolvedValue(0);
     mocks.deleteMany.mockResolvedValue({ count: 1 });
     mocks.transaction.mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) =>
       callback({
+        tripMember: { findFirst: mocks.findFirst },
         photo: { count: mocks.photoCount },
         charge: { count: mocks.chargeCount },
         trip: { deleteMany: mocks.deleteMany },
@@ -44,6 +47,12 @@ describe("safe trip deletion", () => {
     mocks.admin.mockRejectedValue(new Error("Forbidden"));
     await expect(deleteEmptyTrip("trip-1", "EXCLUIR")).rejects.toThrow("Forbidden");
     expect(mocks.transaction).not.toHaveBeenCalled();
+  });
+
+  it("rejects an administrator revoked before the transaction", async () => {
+    mocks.findFirst.mockResolvedValue(null);
+    await expect(deleteEmptyTrip("trip-1", "EXCLUIR")).rejects.toThrow("Administrator");
+    expect(mocks.deleteMany).not.toHaveBeenCalled();
   });
 
   it("protects trips with stored photos", async () => {
