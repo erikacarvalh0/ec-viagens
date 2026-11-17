@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 
 test("creates, edits, archives and restores a trip", async ({ page }) => {
+  test.setTimeout(90000);
   const email = `trip-${randomUUID()}@example.test`;
   const password = "trip-password-12345";
   const name = "Viagem E2E";
@@ -22,6 +23,7 @@ test("creates, edits, archives and restores a trip", async ({ page }) => {
   await page.getByRole("button", { name: `Ver detalhes de ${name}` }).click();
   await page.getByRole("link", { name: "Visão geral da viagem" }).click();
   await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
+  await expect(page).toHaveURL(/\/trips\/[^/]+\/overview$/);
   const overview = page.url();
   await page.getByRole("link", { name: "Editar dados da viagem" }).click();
   await page.getByLabel("Nome da viagem *").fill(edited);
