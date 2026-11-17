@@ -29,4 +29,18 @@ describe.skipIf(!enabled)("trip membership integration", () => {
  it("enforces unique trip membership", async () => {
   await expect(db.tripMember.create({data:{tripId,userId,role:"MEMBER"}})).rejects.toMatchObject({code:"P2002"});
  });
+ it("isolates memberships between trips", async () => {
+  const otherTrip = await db.trip.create({data:{name:"Other Trip"}});
+  try {
+   expect(await db.tripMember.findUnique({where:{tripId_userId:{tripId:otherTrip.id,userId}}})).toBeNull();
+   await db.tripMember.create({data:{tripId:otherTrip.id,userId,role:"ADMIN"}});
+   const original = await db.tripMember.findUniqueOrThrow({where:{tripId_userId:{tripId,userId}}});
+   const other = await db.tripMember.findUniqueOrThrow({where:{tripId_userId:{tripId:otherTrip.id,userId}}});
+   expect(original.role).toBe("MEMBER");
+   expect(other.role).toBe("ADMIN");
+   expect(original.id).not.toBe(other.id);
+  } finally {
+   await db.trip.delete({where:{id:otherTrip.id}});
+  }
+ });
 });
