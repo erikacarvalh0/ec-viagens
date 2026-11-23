@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { randomUUID } from "node:crypto";
 
 test("anonymous and unrelated authenticated users cannot access private photo APIs", async ({ page, request }) => {
-  test.setTimeout(90000);
+  test.setTimeout(180000);
   const url = new URL(process.env.DATABASE_URL ?? "");
   if (!["localhost", "127.0.0.1"].includes(url.hostname) || url.pathname !== "/ec_viagens_e2e") {
     throw new Error("Requires isolated local ec_viagens_e2e database.");
@@ -28,6 +28,11 @@ test("anonymous and unrelated authenticated users cannot access private photo AP
     await expect(page).toHaveURL(/\/dashboard$/);
     expect((await page.request.get(photo)).status()).toBe(403);
     expect((await page.request.post(endpoint)).status()).toBe(403);
+    for (const section of ["overview", "edit", "members", "travel", "photos", "payments", "payments/report", "payments/notifications"]) {
+      const response = await page.request.get(`/trips/${trip.id}/${section}`, { maxRedirects: 0 });
+      expect([302, 303, 307, 308, 403, 404]).toContain(response.status());
+      expect(await response.text()).not.toContain("Private API E2E");
+    }
   } finally {
     await db.trip.delete({ where: { id: trip.id } });
     await db.user.deleteMany({ where: { email } });
