@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 import { requireTripAdmin } from "@/features/members/permissions";
 import { EditTripForm } from "@/features/trips/EditTripForm";
@@ -12,7 +13,7 @@ function toDateInput(date: Date | null) {
 
 export default async function EditTripPage({ params }: PageProps) {
   const { tripId } = await params;
-  const membership = await requireTripAdmin(tripId);
+  const membership = await requireTripAdmin(tripId).catch(() => notFound());
   const trip = membership.trip;
   return (
     <main className="members-page">
