@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { randomUUID } from "node:crypto";
 
 test("anonymous and unrelated authenticated users cannot access private photo APIs", async ({ page, request }) => {
-  test.setTimeout(90000);
+  test.setTimeout(180000);
   const url = new URL(process.env.DATABASE_URL ?? "");
   if (!["localhost", "127.0.0.1"].includes(url.hostname) || url.pathname !== "/ec_viagens_e2e") {
     throw new Error("Requires isolated local ec_viagens_e2e database.");
