@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 import { Card } from "@/design-system";
 import { requireTripMember } from "@/features/members/permissions";
@@ -11,7 +12,7 @@ type PageProps = { params: Promise<{ tripId: string }> };
 
 export default async function TripOverviewPage({ params }: PageProps) {
   const { tripId } = await params;
-  const membership = await requireTripMember(tripId);
+  const membership = await requireTripMember(tripId).catch(() => notFound());
   const isAdmin = membership.role === "ADMIN";
   const [memberCount, photoCount, charges] = await Promise.all([
     prisma.tripMember.count({ where: { tripId } }),
