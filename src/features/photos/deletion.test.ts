@@ -90,4 +90,18 @@ describe("trip photo deletion", () => {
     expect((await deleteTripPhoto("trip-1", "photo-1")).success).toBeUndefined();
     expect(mocks.deleteMany).not.toHaveBeenCalled();
   });
+  it("retries partial storage deletion without prematurely deleting metadata", async () => {
+    mocks.findFirst.mockResolvedValue({
+      id: "photo-1", tripId: "trip-1", uploadedById: "user-1",
+      storageKey: "original.jpg", thumbnailKey: "thumb.jpg",
+    });
+    mocks.removeObject.mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error("Timeout"));
+    expect((await deleteTripPhoto("trip-1", "photo-1")).success).toBeUndefined();
+    expect(mocks.deleteMany).not.toHaveBeenCalled();
+    expect((await deleteTripPhoto("trip-1", "photo-1")).success).toBe(true);
+    expect(mocks.removeObject.mock.calls).toEqual([
+      ["thumb.jpg"], ["original.jpg"], ["thumb.jpg"], ["original.jpg"],
+    ]);
+    expect(mocks.deleteMany).toHaveBeenCalledOnce();
+  });
 });
