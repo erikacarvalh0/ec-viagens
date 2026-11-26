@@ -1,0 +1,23 @@
+name: ECDS v1 consumer preview
+on: [pull_request, workflow_dispatch]
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: erikacarvalh0/erikacarvalho-ds-v1
+          ref: 47e6e29bd0961cb3a19af2327389f118c1b71e26
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: yarn install --frozen-lockfile && npm pack --pack-destination "$RUNNER_TEMP"
+      - run: |
+          mkdir "$RUNNER_TEMP/consumer"
+          cd "$RUNNER_TEMP/consumer"
+          npm init -y
+          npm install react@19.1.0 react-dom@19.1.0 next@15.3 "$RUNNER_TEMP"/erikacarvalho-react-1.0.0.tgz
+          mkdir pages
+          echo 'import {Button} from "@erikacarvalho/react/Button";export default function Page(){return <Button text="Preview" action={()=>{}}/>;}' > pages/index.jsx
+          echo 'import "@erikacarvalho/react/styles.css";export default function App({Component,pageProps}){return <Component {...pageProps}/>;}' > pages/_app.jsx
+          npx next build
