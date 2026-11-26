@@ -25,6 +25,9 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
+      - name: Install pinned ECDS
+        run: npm run setup:ds
+
       - name: Generate Prisma Client
         run: npm run db:generate
         env:
