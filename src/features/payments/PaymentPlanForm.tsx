@@ -2,7 +2,8 @@
 
 import { useActionState } from "react";
 
-import { Button, Card, Input, Select } from "@/design-system";
+import { Card, Input, Select } from "@/design-system";
+import { EcdsButton as Button } from "@/design-system/ecds-v1";
 
 import { createPaymentPlan } from "./actions";
 
