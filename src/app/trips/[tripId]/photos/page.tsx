@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
+import { requireUserId } from "@/lib/session";
 
 import { Card } from "@/design-system";
 import { requireTripMember } from "@/features/members/permissions";
@@ -14,7 +16,8 @@ export default async function TripPhotosPage({
   searchParams,
 }: { params: Promise<{ tripId: string }>; searchParams: Promise<{ cursor?: string; uploaderId?: string; search?: string; captioned?: string }> }) {
   const { tripId } = await params;
-  const membership = await requireTripMember(tripId);
+  await requireUserId();
+  const membership = await requireTripMember(tripId).catch(() => notFound());
   const query = await searchParams;
   const parsed = photoPageSchema.safeParse(query);
   const cursor = parsed.success ? parsed.data.cursor : undefined;
