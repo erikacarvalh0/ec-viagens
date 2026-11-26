@@ -34,6 +34,7 @@ jobs:
         with:
           node-version: "22"
       - run: npm install --no-audit --no-fund
+      - run: npm run setup:ds
       - run: npm run db:generate
       - run: npx prisma migrate deploy
       - run: npx playwright install --with-deps chromium
