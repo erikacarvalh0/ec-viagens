@@ -12,7 +12,8 @@
     "db:migrate": "prisma migrate dev",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "setup:ds": "node scripts/setup-design-system-v1.mjs"
   },
   "dependencies": {
     "next": "^15.3.0",
