@@ -3,7 +3,8 @@
 import { useActionState } from "react";
 import Link from "next/link";
 
-import { Button, Card } from "@/design-system";
+import { Card } from "@/design-system";
+import { EcdsButton as Button } from "@/design-system/ecds-v1";
 import { ResponsibilityControls } from "@/features/responsibilities/ResponsibilityControls";
 import { InvitationList } from "./InvitationList";
 import { responsibilityLabels } from "@/features/responsibilities/schema";
