@@ -4,7 +4,9 @@ import { useActionState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
-import { Button, Card, Input } from "@/design-system";
+import { Card, Input } from "@/design-system";
+
+import { EcdsButton as Button } from "@/design-system/ecds-v1";
 
 import { login, register } from "./actions";
 import { authCallbackPath, authPageHref } from "./redirects";
