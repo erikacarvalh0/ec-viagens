@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 
-import { Button } from "@/design-system";
+import { EcdsButton as Button } from "@/design-system/ecds-v1";
 
 import { validateSelectedPhoto } from "./upload-client";
 
