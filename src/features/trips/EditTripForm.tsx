@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
-import { Button } from "@/design-system";
+import { EcdsButton as Button } from "@/design-system/ecds-v1";
 
 import { saveTripChanges } from "./editing";
 import { tripDraftSchema, type TripDraft } from "./trip";

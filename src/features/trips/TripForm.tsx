@@ -3,7 +3,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { X } from "lucide-react";
 
-import { Button, Card, Input } from "@/design-system";
+import { Card, Input } from "@/design-system";
+import { EcdsButton as Button } from "@/design-system/ecds-v1";
 
 import { tripDraftSchema, type TripDraft } from "./trip";
 
