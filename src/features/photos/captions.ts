@@ -1,11 +1,14 @@
 "use server";
 
+import { photosEnabled } from "./availability";
+
 import { revalidatePath } from "next/cache";
 
 import { requireTripMember } from "@/features/members/permissions";
 import { prisma } from "@/lib/prisma";
 
 export async function updatePhotoCaption(tripId: string, photoId: string, caption: string) {
+  if (!photosEnabled()) return { error: "Galeria temporariamente indisponível." };
   if (typeof caption !== "string" || caption.length > 200) {
     return { error: "A legenda deve ter até 200 caracteres." };
   }
