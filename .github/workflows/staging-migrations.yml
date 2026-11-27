@@ -1,0 +1,108 @@
+name: Staging database migrations (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 'Choose status (read-only) or apply (runs pending migrations)'
+        required: true
+        type: choice
+        options:
+          - status
+          - apply
+      confirmation:
+        description: 'For apply, enter APPLY-STAGING-MIGRATIONS'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ec-viagens-staging-database-migrations
+  cancel-in-progress: false
+
+jobs:
+  staging-migrations:
+    name: Prisma migrations - staging only
+    runs-on: ubuntu-latest
+    environment: staging
+    timeout-minutes: 15
+    env:
+      DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+      EXPECTED_HOST: ${{ vars.STAGING_DATABASE_HOST }}
+      OPERATION: ${{ inputs.operation }}
+      CONFIRMATION: ${{ inputs.confirmation }}
+
+    steps:
+      - name: Enforce manual staging-only invocation
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_EVENT_NAME}" != "workflow_dispatch" || "${GITHUB_REF}" != "refs/heads/main" ]]; then
+            echo "::error::Run this workflow manually from main only."
+            exit 1
+          fi
+          if [[ "${OPERATION}" == "apply" && "${CONFIRMATION}" != "APPLY-STAGING-MIGRATIONS" ]]; then
+            echo "::error::Applying migrations requires the exact confirmation phrase."
+            exit 1
+          fi
+          if [[ "${OPERATION}" != "status" && "${OPERATION}" != "apply" ]]; then
+            exit 1
+          fi
+
+      - name: Validate staging database target without exposing credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const urlText = process.env.DATABASE_URL;
+          const expected = process.env.EXPECTED_HOST;
+          if (!urlText || !expected) {
+            console.error('::error::Configure staging environment secret STAGING_DATABASE_URL and variable STAGING_DATABASE_HOST.');
+            process.exit(1);
+          }
+          let url;
+          try { url = new URL(urlText); } catch {
+            console.error('::error::Invalid staging database connection URL.');
+            process.exit(1);
+          }
+          if (!['postgresql:', 'postgres:'].includes(url.protocol)
+            || !url.hostname.endsWith('.neon.tech')
+            || url.hostname !== expected
+            || !url.username || !url.password
+            || !url.pathname || url.pathname === '/') {
+            console.error('::error::Database connection does not match the explicitly configured staging Neon hostname.');
+            process.exit(1);
+          }
+          console.log('Staging database hostname verified (credentials not printed).');
+          NODE
+
+      - name: Checkout staging migrations
+        uses: actions/checkout@v5
+        with:
+          ref: staging
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      - name: Install dependencies without a lockfile
+        run: npm install --include=dev --no-audit --no-fund
+
+      - name: Validate Prisma schema
+        run: npx prisma validate
+
+      - name: Check migration status
+        if: inputs.operation == 'status'
+        run: npx prisma migrate status
+
+      - name: Apply pending migrations to staging
+        if: inputs.operation == 'apply'
+        run: npx prisma migrate deploy
+
+      - name: Verify migration status after apply
+        if: inputs.operation == 'apply'
+        run: npx prisma migrate status
