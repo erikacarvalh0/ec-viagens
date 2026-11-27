@@ -1,4 +1,5 @@
 import NextAuth from "next-auth";
+import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 
 import { loginSchema } from "@/features/auth/schemas";
@@ -16,6 +17,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: "/login",
   },
   providers: [
+    ...(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET ? [Google] : []),
     Credentials({
       credentials: {
         email: { label: "E-mail", type: "email" },
@@ -55,7 +57,36 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async signIn({ account, profile }) {
+      if (account?.provider !== "google") return account?.provider === "credentials";
+      if (profile?.email_verified !== true || typeof profile.email !== "string" || !account.providerAccountId) return false;
+      const existing = await prisma.user.findUnique({ where: { googleSubject: account.providerAccountId } });
+      if (existing) return true;
+      const email = profile.email.trim().toLowerCase();
+      // Never silently link an existing password account by email.
+      if (await prisma.user.findUnique({ where: { email } })) return false;
+      try {
+        await prisma.user.create({ data: {
+          googleSubject: account.providerAccountId,
+          email,
+          name: typeof profile.name === "string" && profile.name.trim() ? profile.name : email,
+          passwordHash: "",
+          emailVerifiedAt: new Date(),
+        } });
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    async jwt({ token, user, account }) {
+      if (account?.provider === "google") {
+        const local = await prisma.user.findUnique({ where: { googleSubject: account.providerAccountId } });
+        if (!local) return null;
+        token.userId = local.id;
+        token.sessionVersion = local.sessionVersion;
+        token.absoluteExpiresAt = Date.now() + SESSION_MAX_AGE * 1000;
+        return token;
+      }
       if (user) {
         token.userId = user.id;
         token.sessionVersion = user.sessionVersion;
