@@ -26,3 +26,7 @@ malware scanning are future improvements.
 The upload endpoint checks the declared content length and file size.
 For production deployments, also configure a request-body size limit
 at the ingress/proxy to reject oversized multipart bodies before parsing.
+
+## Temporary beta feature flag
+
+The gallery is disabled unless `PHOTOS_ENABLED=true` is explicitly configured on the server. Disabled mode hides gallery navigation and counters and rejects photo routes and mutations. Existing records and objects are preserved. Configure private storage and validate access before enabling. Existing CI photo tests explicitly enable the feature.
