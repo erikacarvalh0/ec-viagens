@@ -20,6 +20,7 @@ export type Section =
 
 type AppShellProps = {
   currentSection: Section;
+  galleryEnabled?: boolean;
   onNavigate: (section: Section) => void;
   children: ReactNode;
 };
@@ -45,6 +46,7 @@ export const sectionLabels: Record<Section, string> = {
 
 export function AppShell({
   currentSection,
+  galleryEnabled = false,
   onNavigate,
   children,
 }: AppShellProps) {
@@ -61,7 +63,7 @@ export function AppShell({
         <p className="nav-label">MENU PRINCIPAL</p>
 
         <nav aria-label="Navegação principal">
-          {navigation.map(({ id, label, icon: Icon }) => (
+          {navigation.filter(({ id }) => galleryEnabled || id !== "gallery").map(({ id, label, icon: Icon }) => (
             <button
               aria-current={currentSection === id ? "page" : undefined}
               className={currentSection === id ? "active" : ""}
