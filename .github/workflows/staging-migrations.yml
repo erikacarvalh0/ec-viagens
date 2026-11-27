@@ -1,0 +1,63 @@
+name: Staging migration gate
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging-migration-gate
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require staging branch
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = "refs/heads/staging" || {
+            echo "::error::Select the staging branch."
+            exit 1
+          }
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - run: npm install --no-audit --no-fund
+      - run: npm run db:generate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+
+  migrate:
+    needs: checks
+    runs-on: ubuntu-latest
+    environment: staging
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - run: npm install --no-audit --no-fund
+      - name: Apply and verify staging migrations
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = "refs/heads/staging"
+          node -e 'const u = new URL(process.env.DATABASE_URL); if (!["postgresql:", "postgres:"].includes(u.protocol) || !u.hostname.endsWith(".neon.tech") || u.hostname.includes("-pooler")) throw new Error("A direct Neon connection is required");'
+          npx prisma migrate deploy
+          npx prisma migrate status
+
+  publication:
+    needs: migrate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hold publication until deployment integration is configured
+        run: |
+          echo "::notice::Migrations verified. Publication remains manual; no Vercel deployment was performed."
