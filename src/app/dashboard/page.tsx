@@ -1,3 +1,4 @@
+import { photosEnabled } from "@/features/photos/availability";
 import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
@@ -35,7 +36,7 @@ export default async function DashboardPage() {
         {" · "}
         <Link href="/settings/notifications">Preferências de notificações</Link>
       </nav>
-      <Dashboard initialTrips={trips} />
+      <Dashboard initialTrips={trips} galleryEnabled={photosEnabled()} />
     </>
   );
 }
