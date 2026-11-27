@@ -8,10 +8,11 @@ import { getTripBackLabel } from "./history";
 
 type TripDetailsProps = {
   trip: Trip;
+  galleryEnabled?: boolean;
   onBack: () => void;
 };
 
-export function TripDetails({ trip, onBack }: TripDetailsProps) {
+export function TripDetails({ trip, onBack, galleryEnabled = false }: TripDetailsProps) {
   return (
     <div className="trip-details">
       <Button onClick={onBack} variant="ghost">
@@ -52,6 +53,7 @@ export function TripDetails({ trip, onBack }: TripDetailsProps) {
           <Wallet size={16} /> Planos de pagamento
         </Link>
 
+        {galleryEnabled && <>
         <Link href={`/trips/${trip.id}/photos`}>
           <Images size={16} /> Galeria de fotos
         </Link>
@@ -59,6 +61,7 @@ export function TripDetails({ trip, onBack }: TripDetailsProps) {
         <div className="trip-details__notice">
           Compartilhe as fotos da viagem com as participantes.
         </div>
+        </>}
       </Card>
     </div>
   );

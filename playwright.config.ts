@@ -14,6 +14,6 @@ export default defineConfig({
     url: "http://127.0.0.1:3100/login",
     reuseExistingServer: false,
     timeout: 120000,
-    env: { AUTH_SECRET: "e2e-only-secret-not-for-production", AUTH_TRUST_HOST: "true" },
+    env: { AUTH_SECRET: "e2e-only-secret-not-for-production", AUTH_TRUST_HOST: "true", PHOTOS_ENABLED: "true" },
   },
 });

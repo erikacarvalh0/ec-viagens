@@ -1,3 +1,4 @@
+import { photosEnabled } from "@/features/photos/availability";
 import { randomUUID } from "node:crypto";
 
 import { requireTripMember } from "@/features/members/permissions";
@@ -12,6 +13,7 @@ export const runtime = "nodejs";
 type Context = { params: Promise<{ tripId: string }> };
 
 export async function POST(request: Request, context: Context) {
+  if (!photosEnabled()) return new Response("Not found", { status: 404 });
   const { tripId } = await context.params;
   if (!(await auth())?.user?.id) return new Response("Unauthorized", { status: 401 });
   let member: Awaited<ReturnType<typeof requireTripMember>>;

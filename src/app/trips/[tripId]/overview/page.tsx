@@ -1,3 +1,4 @@
+import { photosEnabled } from "@/features/photos/availability";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUserId } from "@/lib/session";
@@ -15,10 +16,11 @@ export default async function TripOverviewPage({ params }: PageProps) {
   const { tripId } = await params;
   await requireUserId();
   const membership = await requireTripMember(tripId).catch(() => notFound());
+  const galleryEnabled = photosEnabled();
   const isAdmin = membership.role === "ADMIN";
   const [memberCount, photoCount, charges] = await Promise.all([
     prisma.tripMember.count({ where: { tripId } }),
-    prisma.photo.count({ where: { tripId } }),
+    galleryEnabled ? prisma.photo.count({ where: { tripId } }) : Promise.resolve(0),
     prisma.charge.findMany({
       where: { plan: { tripId }, ...(!isAdmin ? { memberId: membership.id } : {}) },
       select: { amountCents: true, status: true },
@@ -39,11 +41,11 @@ export default async function TripOverviewPage({ params }: PageProps) {
           <strong>{summary.memberCount}</strong>
           <p><Link href={`/trips/${tripId}/members`}>Ver participantes</Link></p>
         </Card>
-        <Card padding="lg">
+        {galleryEnabled && <Card padding="lg">
           <h2>Fotos</h2>
           <strong>{summary.photoCount}</strong>
           <p><Link href={`/trips/${tripId}/photos`}>Abrir galeria</Link></p>
-        </Card>
+        </Card>}
         <Card padding="lg">
           <h2>{isAdmin ? "Valor total previsto" : "Total das suas cobranças"}</h2>
           <strong>{formatBRL(summary.totalCents)}</strong>

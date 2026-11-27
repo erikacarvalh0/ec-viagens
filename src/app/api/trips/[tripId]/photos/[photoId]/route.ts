@@ -1,3 +1,4 @@
+import { photosEnabled } from "@/features/photos/availability";
 import { requireTripMember } from "@/features/members/permissions";
 import { downloadPrivatePhoto } from "@/features/photos/storage";
 import { auth } from "@/lib/auth";
@@ -9,6 +10,7 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ tripId: string; photoId: string }> },
 ) {
+  if (!photosEnabled()) return new Response("Not found", { status: 404 });
   const { tripId, photoId } = await params;
   if (!(await auth())?.user?.id) return new Response("Unauthorized", { status: 401 });
   try {

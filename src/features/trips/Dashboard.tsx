@@ -19,9 +19,10 @@ import { sortTrips, type TripSort } from "./sort";
 
 type DashboardProps = {
   initialTrips: Trip[];
+  galleryEnabled?: boolean;
 };
 
-export function Dashboard({ initialTrips }: DashboardProps) {
+export function Dashboard({ initialTrips, galleryEnabled = false }: DashboardProps) {
   const router = useRouter();
   const [section, setSection] = useState<Section>("overview");
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
@@ -36,7 +37,7 @@ export function Dashboard({ initialTrips }: DashboardProps) {
   const visibleTrips = sortTrips(searchTrips(filterTripsByArchive(trips, showArchived), search), sort);
 
   return (
-    <AppShell currentSection={section} onNavigate={setSection}>
+    <AppShell galleryEnabled={galleryEnabled} currentSection={section} onNavigate={setSection}>
       <div className="heading">
         <div>
           <p className="eyebrow">BEM-VINDA DE VOLTA ✳</p>
@@ -86,7 +87,7 @@ export function Dashboard({ initialTrips }: DashboardProps) {
         />
         </>
       ) : section === "details" && selectedTrip ? (
-        <TripDetails onBack={() => setSection("trips")} trip={selectedTrip} />
+        <TripDetails galleryEnabled={galleryEnabled} onBack={() => setSection("trips")} trip={selectedTrip} />
       ) : (
         <div className="placeholder">
           <h2>{sectionLabels[section]}</h2>

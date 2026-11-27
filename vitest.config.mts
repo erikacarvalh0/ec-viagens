@@ -10,6 +10,7 @@ export default defineConfig({
   },
   test: {
     environment: "node",
+    env: { PHOTOS_ENABLED: "true" },
     clearMocks: true,
     restoreMocks: true,
     include: ["src/**/*.test.ts"],

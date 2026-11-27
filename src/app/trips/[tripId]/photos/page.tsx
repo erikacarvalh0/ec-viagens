@@ -1,3 +1,4 @@
+import { photosEnabled } from "@/features/photos/availability";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUserId } from "@/lib/session";
@@ -18,6 +19,7 @@ export default async function TripPhotosPage({
   const { tripId } = await params;
   await requireUserId();
   const membership = await requireTripMember(tripId).catch(() => notFound());
+  if (!photosEnabled()) notFound();
   const query = await searchParams;
   const parsed = photoPageSchema.safeParse(query);
   const cursor = parsed.success ? parsed.data.cursor : undefined;

@@ -1,5 +1,7 @@
 "use server";
 
+import { photosEnabled } from "./availability";
+
 import { revalidatePath } from "next/cache";
 
 import { requireTripMember } from "@/features/members/permissions";
@@ -8,6 +10,7 @@ import { prisma } from "@/lib/prisma";
 import { deletePrivatePhoto } from "./storage";
 
 export async function deleteTripPhoto(tripId: string, photoId: string) {
+  if (!photosEnabled()) return { error: "Galeria temporariamente indisponível." };
   try {
     const actor = await requireTripMember(tripId);
     const photo = await prisma.photo.findFirst({
